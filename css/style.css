@@ -95,6 +95,45 @@ button {
   color: #0a0b0d
 }
 
+/* ---------- Magnetic cursor (desktop only) ---------- */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ember);
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate3d(-50%, -50%, 0);
+  transition:
+    width .3s cubic-bezier(.2, .8, .2, 1),
+    height .3s cubic-bezier(.2, .8, .2, 1),
+    background .3s ease,
+    border-color .3s ease,
+    box-shadow .3s ease;
+  border: 2px solid transparent;
+  box-sizing: border-box;
+  will-change: transform, width, height;
+}
+
+.cursor.is-hover {
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border-color: var(--ember);
+  box-shadow: 0 0 18px rgba(175, 15, 15, .55);
+}
+
+.cursor.is-down {
+  transform: translate3d(-50%, -50%, 0) scale(.8);
+}
+
+@media (max-width: 900px), (hover: none), (pointer: coarse) {
+  .cursor { display: none; }
+}
+
 .container {
   max-width: var(--container);
   margin: 0 auto;
@@ -107,16 +146,27 @@ button {
   gap: 10px;
   font-family: var(--ff-mono);
   font-size: 12px;
-  letter-spacing: .18em;
+  letter-spacing: .22em;
   text-transform: uppercase;
   color: var(--txt-mute);
 }
 
 .eyebrow::before {
   content: "";
-  width: 28px;
+  width: 44px;
   height: 1px;
-  background: var(--ember)
+  background: var(--ember);
+  box-shadow: 0 0 8px rgba(175, 15, 15, .6);
+}
+
+.eyebrow::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  background: var(--ember);
+  margin-left: -4px;
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px rgba(175, 15, 15, .6);
 }
 
 .section {
@@ -162,18 +212,26 @@ button {
   align-items: center;
   gap: 12px;
   padding: 16px 24px;
-  border-radius: 6px;
+  border-radius: 4px;
   font-weight: 600;
   font-size: 14px;
-  letter-spacing: .04em;
+  letter-spacing: .06em;
   text-transform: uppercase;
-  transition: transform .25s ease, background .25s ease, color .25s ease, box-shadow .25s ease;
+  transition: transform .25s ease, color .25s ease, box-shadow .25s ease, border-color .25s ease;
   position: relative;
   overflow: hidden;
+  isolation: isolate;
+}
+
+.btn > * {
+  position: relative;
+  z-index: 2;
 }
 
 .btn i {
-  transition: transform .25s ease
+  transition: transform .25s ease;
+  position: relative;
+  z-index: 2;
 }
 
 .btn:hover i {
@@ -183,6 +241,21 @@ button {
 .btn-primary {
   background: var(--grad-ember);
   color: #fff
+}
+
+/* Slide-fill highlight sweep on primary buttons */
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, .25) 50%, transparent 100%);
+  transform: translateX(-110%) skewX(-12deg);
+  transition: transform .7s cubic-bezier(.4, 0, .2, 1);
+  z-index: 1;
+}
+
+.btn-primary:hover::after {
+  transform: translateX(110%) skewX(-12deg);
 }
 
 .btn-primary:hover {
@@ -196,9 +269,25 @@ button {
   background: rgba(255, 255, 255, .02);
 }
 
+/* Slide-fill ember on ghost buttons */
+.btn-ghost::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ember);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .35s cubic-bezier(.4, 0, .2, 1);
+  z-index: 1;
+}
+
+.btn-ghost:hover::after {
+  transform: scaleX(1);
+}
+
 .btn-ghost:hover {
   border-color: var(--ember);
-  color: var(--ember);
+  color: #fff;
   transform: translateY(-2px)
 }
 
@@ -402,6 +491,44 @@ button {
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
 }
 
+.hero__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.hero__scene-layer {
+  will-change: transform;
+}
+
+.hero__scene-spark .hero__spark-core {
+  filter: drop-shadow(0 0 4px #ff8a3a) drop-shadow(0 0 12px rgba(255, 90, 30, .8));
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: heroSparkCore 2.6s ease-in-out infinite;
+}
+
+.hero__scene-spark .hero__spark-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: heroSparkGlow 2.6s ease-in-out infinite;
+}
+
+@keyframes heroSparkCore {
+  0%, 92%, 100% { opacity: 0; transform: scale(0); }
+  6%            { opacity: 1; transform: scale(1.4); }
+  20%           { opacity: .6; transform: scale(.8); }
+}
+
+@keyframes heroSparkGlow {
+  0%, 92%, 100% { opacity: 0; transform: scale(.6); }
+  6%            { opacity: .9; transform: scale(1.3); }
+  30%           { opacity: .25; transform: scale(.9); }
+}
+
 .hero__canvas {
   position: absolute;
   inset: 0;
@@ -492,13 +619,36 @@ button {
   transition: transform .4s ease;
 }
 
-.hero__service:hover {
-  background: rgba(28, 32, 39, .8);
+.hero__service:hover,
+.hero__service.is-active {
+  background: rgba(28, 32, 39, .85);
   transform: translateY(-4px)
 }
 
-.hero__service:hover::after {
+.hero__service:hover::after,
+.hero__service.is-active::after {
   transform: scaleX(1)
+}
+
+/* Auto-cycle active state — ember halo on the icon */
+.hero__service.is-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 24px 80px, rgba(175, 15, 15, .22) 0%, transparent 55%);
+  pointer-events: none;
+  animation: heroServicePulse 3.5s ease-in-out infinite;
+}
+
+@keyframes heroServicePulse {
+  0%, 100% { opacity: .6; }
+  50%      { opacity: 1; }
+}
+
+.hero__service.is-active i {
+  background: var(--grad-ember);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 8px 22px -4px rgba(175, 15, 15, .55);
 }
 
 .hero__service-num {
@@ -637,6 +787,26 @@ button {
   opacity: 1
 }
 
+/* Hard-edge corner bracket — industrial blueprint accent */
+.service::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 14px;
+  height: 14px;
+  border-top: 1px solid var(--line-2);
+  border-right: 1px solid var(--line-2);
+  transition: border-color .3s ease, width .3s ease, height .3s ease;
+  pointer-events: none;
+}
+
+.service:hover::after {
+  border-color: var(--ember);
+  width: 22px;
+  height: 22px;
+}
+
 .service__num {
   font-family: var(--ff-mono);
   font-size: 12px;
@@ -728,6 +898,8 @@ button {
   font-weight: 600;
   line-height: 1;
   letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
   background: linear-gradient(180deg, #fff 0%, #888 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -763,8 +935,8 @@ button {
 }
 
 .bp-stage {
-  height: 300vh;
-  /* scroll length for the scrub */
+  height: 420vh;
+  /* extended scroll length for 3-act scrub: lines → fabrication → reality */
   position: relative;
 }
 
@@ -787,6 +959,21 @@ button {
   background: #0c1722;
   /* deep blueprint navy */
   box-shadow: 0 40px 80px -20px rgba(0, 0, 0, .7), 0 0 0 1px var(--line) inset;
+  transition: box-shadow .6s ease;
+}
+
+.bp.is-forging {
+  box-shadow:
+    0 40px 80px -20px rgba(0, 0, 0, .8),
+    0 0 0 1px rgba(255, 91, 31, .35) inset,
+    0 0 80px -10px rgba(255, 91, 31, .35);
+}
+
+.bp.is-real {
+  box-shadow:
+    0 40px 90px -10px rgba(0, 0, 0, .9),
+    0 0 0 1px rgba(175, 15, 15, .55) inset,
+    0 0 120px -10px rgba(175, 15, 15, .35);
 }
 
 /* Blueprint SVG layer */
@@ -797,11 +984,89 @@ button {
   height: 100%;
   z-index: 2;
   filter: drop-shadow(0 0 8px rgba(127, 178, 224, .2));
+  transition: filter .6s ease;
+}
+
+/* During fabrication phase, the steel structure heats up red-hot */
+.bp.is-forging .bp__blueprint {
+  filter:
+    drop-shadow(0 0 6px rgba(255, 120, 60, .55))
+    drop-shadow(0 0 20px rgba(255, 60, 20, .35));
 }
 
 .bp__blueprint .bp__lines {
   stroke-dasharray: 2000;
   stroke-dashoffset: 0;
+}
+
+/* === FORGE / FABRICATION layer (welds + sparks, inside SVG) === */
+.bp__forge {
+  pointer-events: none;
+}
+
+.bp__weld {
+  fill: rgba(255, 138, 50, .55);
+  filter: blur(2.5px);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bpWeldPulse 1.6s ease-in-out infinite alternate;
+}
+
+.bp__welds circle:nth-child(2n)  { animation-delay: -.3s; animation-duration: 1.4s; }
+.bp__welds circle:nth-child(3n)  { animation-delay: -.7s; animation-duration: 1.8s; }
+.bp__welds circle:nth-child(5n)  { animation-delay: -1s;  animation-duration: 1.5s; }
+
+@keyframes bpWeldPulse {
+  0%   { opacity: .35; transform: scale(.7); }
+  100% { opacity: .95; transform: scale(1.25); }
+}
+
+.bp__spark {
+  fill: #ffd982;
+  filter:
+    drop-shadow(0 0 3px #ff8a3a)
+    drop-shadow(0 0 8px rgba(255, 90, 30, .8));
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bpSpark 1.4s var(--d, 0s) ease-out infinite;
+}
+
+@keyframes bpSpark {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0); }
+  12%  { opacity: 1; transform: translate(0, -2px) scale(1.3); }
+  100% { opacity: 0; transform: translate(6px, -32px) scale(.2); }
+}
+
+/* offset variants — give different sparks different fly directions */
+.bp__sparks circle:nth-child(3n)   { animation-name: bpSparkLeft; }
+.bp__sparks circle:nth-child(3n+1) { animation-name: bpSparkRight; }
+.bp__sparks circle:nth-child(5n)   { animation-name: bpSparkSteep; }
+
+@keyframes bpSparkLeft {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0); }
+  12%  { opacity: 1; transform: translate(-2px, -2px) scale(1.3); }
+  100% { opacity: 0; transform: translate(-10px, -30px) scale(.2); }
+}
+
+@keyframes bpSparkRight {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0); }
+  12%  { opacity: 1; transform: translate(2px, -2px) scale(1.3); }
+  100% { opacity: 0; transform: translate(12px, -28px) scale(.2); }
+}
+
+@keyframes bpSparkSteep {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0); }
+  12%  { opacity: 1; transform: translate(0, -2px) scale(1.4); }
+  100% { opacity: 0; transform: translate(2px, -38px) scale(.15); }
+}
+
+.bp__forge-label rect {
+  animation: bpForgeBlink 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes bpForgeBlink {
+  0%   { opacity: .55; }
+  100% { opacity: 1; }
 }
 
 /* Reality (real photo) layer — revealed via clip-path */
@@ -811,12 +1076,21 @@ button {
   z-index: 3;
   background-image:
     linear-gradient(180deg, rgba(10, 11, 13, .15) 0%, rgba(10, 11, 13, .55) 100%),
-    url('https://metalyol.com/wp-content/uploads/2025/03/reantalBg-uai-1422x800.jpg');
+    url('https://metalyol.com/wp-content/uploads/2025/09/katara-towers-e1756975505905-uai-815x1018.jpg');
   background-size: cover;
   background-position: center;
   /* clip-path is animated by GSAP — start hidden */
   clip-path: inset(0 100% 0 0);
   will-change: clip-path;
+  transition: filter .8s ease;
+}
+
+/* During constructed phase, ember glow on the building photo */
+.bp.is-real .bp__reality {
+  filter:
+    saturate(1.05)
+    contrast(1.05)
+    drop-shadow(0 0 30px rgba(175, 15, 15, .35));
 }
 
 /* Info panel on top */
@@ -979,11 +1253,32 @@ button {
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--bg-2);
-  transition: transform .3s ease;
+  transition: transform .3s ease, box-shadow .3s ease;
 }
 
 .op-card:hover {
-  transform: translateY(-6px)
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px -16px rgba(0,0,0,.6), 0 0 0 1px rgba(175,15,15,.4) inset;
+}
+
+/* Top-right ember corner bracket — blueprint annotation feel */
+.op-card__bracket {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 16px;
+  height: 16px;
+  border-top: 1.5px solid var(--ember);
+  border-right: 1.5px solid var(--ember);
+  z-index: 3;
+  opacity: .8;
+  transition: width .3s ease, height .3s ease, opacity .3s ease;
+}
+
+.op-card:hover .op-card__bracket {
+  width: 28px;
+  height: 28px;
+  opacity: 1;
 }
 
 .op-card__img {

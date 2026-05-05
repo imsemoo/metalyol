@@ -60,6 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function initAll(){
     gsap.registerPlugin(ScrollTrigger);
     initHero();
+    initHeroParallax();
+    initServiceCycle();
+    initCursor();
     initParticles();
     initReveals();
     initCounters();
@@ -74,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .from('.hero .eyebrow', {y:20, opacity:0, duration:.7, ease:'power3.out'})
       .from('.hero__headline .line span', {yPercent:110, duration:1, stagger:.08, ease:'power4.out'}, '-=.4')
       .from('.hero__sub', {y:20, opacity:0, duration:.7, ease:'power3.out'}, '-=.5')
-      .from('.hero__service', {y:30, opacity:0, duration:.7, stagger:.1, ease:'power3.out'}, '-=.4')
+      .from('.hero__service', {y:30, opacity:0, duration:.7, stagger:.1, ease:'power3.out', clearProps:'transform,opacity'}, '-=.4')
       .from('.hero__cta > *', {y:20, opacity:0, duration:.6, stagger:.08, ease:'power3.out'}, '-=.4')
       .from('.hero__scroll', {opacity:0, duration:.6}, '-=.2');
 
@@ -82,6 +85,101 @@ document.addEventListener('DOMContentLoaded', () => {
       yPercent:30, ease:'none',
       scrollTrigger:{trigger:'.hero', start:'top top', end:'bottom top', scrub:true}
     });
+  }
+
+  /* -------- Hero scene parallax (mouse) ---------- */
+  function initHeroParallax(){
+    const hero = document.querySelector('.hero');
+    const layers = hero?.querySelectorAll('.hero__scene-layer');
+    if(!hero || !layers || !layers.length) return;
+
+    let raf = null, mx = 0, my = 0;
+    const onMove = e => {
+      const r = hero.getBoundingClientRect();
+      mx = ((e.clientX - r.left) / r.width  - .5) * 2;   // -1 .. 1
+      my = ((e.clientY - r.top)  / r.height - .5) * 2;
+      if(!raf) raf = requestAnimationFrame(apply);
+    };
+    function apply(){
+      raf = null;
+      layers.forEach(el=>{
+        const depth = parseFloat(el.dataset.depth || .35);
+        const tx = mx * 28 * depth;
+        const ty = my * 18 * depth;
+        el.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+      });
+    }
+    hero.addEventListener('mousemove', onMove, {passive:true});
+    hero.addEventListener('mouseleave', ()=>{
+      layers.forEach(el => el.style.transform = 'translate3d(0,0,0)');
+    });
+  }
+
+  /* -------- Hero service cards auto-cycle ---------- */
+  function initServiceCycle(){
+    const cards = document.querySelectorAll('.hero__service');
+    if(cards.length < 2) return;
+
+    let i = 0, paused = false, timer = null;
+    const setActive = idx => {
+      cards.forEach((c, k) => c.classList.toggle('is-active', k === idx));
+      i = idx;
+    };
+    const start = () => {
+      stop();
+      timer = setInterval(()=>{ if(!paused) setActive((i + 1) % cards.length); }, 3500);
+    };
+    const stop = () => { if(timer){ clearInterval(timer); timer = null; } };
+
+    cards.forEach((c, idx) => {
+      c.addEventListener('mouseenter', ()=>{ paused = true;  setActive(idx); });
+      c.addEventListener('mouseleave', ()=>{ paused = false; });
+    });
+
+    setActive(0);
+    start();
+
+    // Pause cycling when hero is offscreen — saves cycles
+    const io = new IntersectionObserver(entries=>{
+      entries.forEach(e => e.isIntersecting ? start() : stop());
+    }, {threshold:.15});
+    io.observe(cards[0].closest('.hero'));
+  }
+
+  /* -------- Magnetic ember cursor ---------- */
+  function initCursor(){
+    if(window.matchMedia('(hover: none), (pointer: coarse), (max-width: 900px)').matches) return;
+    const cursor = document.createElement('div');
+    cursor.className = 'cursor';
+    cursor.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(cursor);
+
+    let mx = 0, my = 0, cx = 0, cy = 0, running = false;
+    const lerp = (a, b, n) => a + (b - a) * n;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      if(!running){ running = true; loop(); }
+    }, {passive:true});
+
+    function loop(){
+      cx = lerp(cx, mx, .22);
+      cy = lerp(cy, my, .22);
+      cursor.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate3d(-50%, -50%, 0)`;
+      requestAnimationFrame(loop);
+    }
+
+    const hoverSel = 'a, .btn, .hero__service, .service, .op-card, button, [role="button"]';
+    document.addEventListener('mouseover', e=>{
+      if(e.target.closest(hoverSel)) cursor.classList.add('is-hover');
+    });
+    document.addEventListener('mouseout', e=>{
+      if(e.target.closest(hoverSel) && !e.relatedTarget?.closest(hoverSel)) cursor.classList.remove('is-hover');
+    });
+    document.addEventListener('mousedown', ()=>cursor.classList.add('is-down'));
+    document.addEventListener('mouseup',   ()=>cursor.classList.remove('is-down'));
+    document.addEventListener('mouseleave', ()=>cursor.style.opacity = '0');
+    document.addEventListener('mouseenter', ()=>cursor.style.opacity = '1');
   }
 
   /* -------- Particles canvas ---------- */
@@ -176,21 +274,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* -------- BLUEPRINT → REALITY scrub ---------- */
+  /* -------- BLUEPRINT → FABRICATION → REALITY scrub ---------- */
   function initBlueprint(){
     const stage = document.querySelector('.bp-stage');
     if(!stage) return;
 
+    const bp = document.querySelector('.bp');
     const lines = document.querySelectorAll('.bp__blueprint .bp__lines path, .bp__blueprint .bp__lines line');
-    const dims = document.querySelector('.bp__dims');
+    const callouts = document.querySelectorAll('.bp__dims .bp__callout');
     const titleblock = document.querySelector('.bp__titleblock');
+    const forge = document.querySelector('.bp__forge');
     const reality = document.querySelector('.bp__reality');
     const blueprint = document.querySelector('.bp__blueprint');
     const fill = document.querySelector('.bp__progress-fill');
     const pct = document.querySelector('.bp__progress-pct');
     const phaseItems = document.querySelectorAll('.bp__phase-item');
 
-    // Set up line drawing initial state
+    // Initial line-draw state — each line hidden via stroke-dashoffset = length
     lines.forEach(el=>{
       const len = el.getTotalLength ? el.getTotalLength() : 400;
       el.style.strokeDasharray = len;
@@ -207,28 +307,34 @@ document.addEventListener('DOMContentLoaded', () => {
           const p = Math.round(self.progress*100);
           fill.style.width = p+'%';
           pct.textContent = p+'%';
-          // phase
+          // 3-act phase logic
           let phase = 0;
-          if(self.progress > .35) phase = 1;
-          if(self.progress > .7) phase = 2;
+          if(self.progress > .30) phase = 1;
+          if(self.progress > .66) phase = 2;
           phaseItems.forEach((it,i)=>{
             it.classList.toggle('is-active', i===phase);
           });
+          // Container state classes — drive ember glow / steel glow via CSS
+          bp.classList.toggle('is-forging', phase === 1);
+          bp.classList.toggle('is-real', phase === 2);
         }
       }
     });
 
-    // Phase 1: lines draw on (0 → 35%)
-    tl.to(lines, {strokeDashoffset:0, duration:1, ease:'power2.out', stagger:{each:.005, from:'start'}}, 0);
-    tl.from(dims, {opacity:0, duration:.4}, .4);
-    tl.from(titleblock, {opacity:0, x:-20, duration:.4}, .3);
+    // ============ ACT 1 · BLUEPRINT (0 → 1.2 timeline / 0–30% scroll) ============
+    tl.to(lines, {strokeDashoffset:0, duration:1.2, ease:'power2.out', stagger:{each:.004, from:'start'}}, 0);
+    tl.from(titleblock, {opacity:0, x:-20, duration:.5, ease:'power2.out'}, .25);
+    tl.from(callouts,   {opacity:0, y:-4, duration:.4, stagger:.07, ease:'power2.out'}, .55);
 
-    // Phase 2: blueprint fades while reality wipes in (35% → 75%)
-    tl.to(reality, {clipPath:'inset(0 0% 0 0)', duration:1.2, ease:'power2.inOut'}, 1.0);
-    tl.to(blueprint, {opacity:0, duration:.8, ease:'power2.in'}, 1.4);
+    // ============ ACT 2 · FABRICATION (1.4 → 2.5 / 30–66% scroll) ============
+    tl.to(forge, {opacity:1, duration:.5, ease:'power2.out'}, 1.4);
+    tl.to({}, {duration:.6}, 1.9);                                  // dwell on welding
+    tl.to(forge, {opacity:0, duration:.45, ease:'power2.in'}, 2.45);
 
-    // Phase 3: subtle zoom on the finished photo (75% → 100%)
-    tl.to(reality, {scale:1.05, duration:1, ease:'none', transformOrigin:'center center'}, 2.0);
+    // ============ ACT 3 · CONSTRUCTED (2.6 → 4 / 66–100% scroll) ============
+    tl.to(reality,   {clipPath:'inset(0 0% 0 0)', duration:1.2, ease:'power2.inOut'}, 2.6);
+    tl.to(blueprint, {opacity:0, duration:.8, ease:'power2.in'}, 3.0);
+    tl.to(reality,   {scale:1.06, duration:1, ease:'none', transformOrigin:'center center'}, 3.2);
   }
 
   /* -------- Form ---------- */
