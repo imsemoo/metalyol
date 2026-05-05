@@ -952,7 +952,7 @@ button {
 .bp {
   position: relative;
   width: 100%;
-  max-width: 1320px;
+  max-width: 920px;
   aspect-ratio: 16/9;
   border-radius: var(--radius-lg);
   overflow: hidden;
