@@ -31,8 +31,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const burger = document.querySelector('.nav__burger');
   const links = document.querySelectorAll('.nav__menu a');
 
+  // Publish the live nav height as --nav-h so CSS (e.g. sticky bp-stage)
+  // can sit cleanly below it on every viewport.
+  function syncNavHeight(){
+    if(!nav) return;
+    document.documentElement.style.setProperty('--nav-h', nav.offsetHeight + 'px');
+  }
+  syncNavHeight();
+  window.addEventListener('resize', syncNavHeight, {passive:true});
+  if(typeof ResizeObserver !== 'undefined' && nav){
+    new ResizeObserver(syncNavHeight).observe(nav);
+  }
+
   window.addEventListener('scroll', () => {
     nav.classList.toggle('scrolled', window.scrollY > 30);
+    syncNavHeight();
     let cur = '';
     document.querySelectorAll('section[id]').forEach(s=>{
       const top = s.offsetTop - 120;
@@ -53,7 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const t = document.querySelector(id);
       if(!t) return;
       e.preventDefault();
-      window.scrollTo({top:t.offsetTop - 70, behavior:'smooth'});
+      const navH = nav ? nav.offsetHeight : 70;
+      window.scrollTo({top:t.offsetTop - navH - 8, behavior:'smooth'});
     });
   });
 
@@ -274,67 +288,74 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* -------- BLUEPRINT → FABRICATION → REALITY scrub ---------- */
-  function initBlueprint(){
-    const stage = document.querySelector('.bp-stage');
-    if(!stage) return;
+  /* -------- BLUEPRINT → FABRICATION → REALITY scrub ----------
+     Each bp-stage runs its own independent scrub timeline so we can stack
+     several featured projects (Katara towers, Lusail Marina Yacht Club, …)
+     down the page without them stomping on each other. -------------------- */
+  function initBlueprintStage(stage){
+    const bp         = stage.querySelector('.bp');
+    if(!bp) return;
+    const blueprint  = stage.querySelector('.bp__blueprint');
+    const reality    = stage.querySelector('.bp__reality');
+    const forge      = stage.querySelector('.bp__forge');
+    const lines      = stage.querySelectorAll('.bp__blueprint .bp__lines path, .bp__blueprint .bp__lines line');
+    const callouts   = stage.querySelectorAll('.bp__dims .bp__callout');
+    const titleblock = stage.querySelector('.bp__titleblock');
+    const fill       = stage.querySelector('.bp__progress-fill');
+    const pct        = stage.querySelector('.bp__progress-pct');
+    const phaseItems = stage.querySelectorAll('.bp__phase-item');
 
-    const bp = document.querySelector('.bp');
-    const lines = document.querySelectorAll('.bp__blueprint .bp__lines path, .bp__blueprint .bp__lines line');
-    const callouts = document.querySelectorAll('.bp__dims .bp__callout');
-    const titleblock = document.querySelector('.bp__titleblock');
-    const forge = document.querySelector('.bp__forge');
-    const reality = document.querySelector('.bp__reality');
-    const blueprint = document.querySelector('.bp__blueprint');
-    const fill = document.querySelector('.bp__progress-fill');
-    const pct = document.querySelector('.bp__progress-pct');
-    const phaseItems = document.querySelectorAll('.bp__phase-item');
-
-    // Initial line-draw state — each line hidden via stroke-dashoffset = length
+    // Initial line-draw state for SVG blueprints — image blueprints simply skip this
     lines.forEach(el=>{
       const len = el.getTotalLength ? el.getTotalLength() : 400;
-      el.style.strokeDasharray = len;
+      el.style.strokeDasharray  = len;
       el.style.strokeDashoffset = len;
     });
 
     const tl = gsap.timeline({
       scrollTrigger:{
-        trigger:stage,
-        start:'top top',
-        end:'bottom bottom',
-        scrub:.6,
+        trigger: stage,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: .6,
         onUpdate(self){
           const p = Math.round(self.progress*100);
-          fill.style.width = p+'%';
-          pct.textContent = p+'%';
-          // 3-act phase logic
+          if(fill) fill.style.width = p+'%';
+          if(pct)  pct.textContent  = p+'%';
           let phase = 0;
           if(self.progress > .30) phase = 1;
           if(self.progress > .66) phase = 2;
-          phaseItems.forEach((it,i)=>{
-            it.classList.toggle('is-active', i===phase);
-          });
-          // Container state classes — drive ember glow / steel glow via CSS
+          phaseItems.forEach((it,i)=> it.classList.toggle('is-active', i===phase));
           bp.classList.toggle('is-forging', phase === 1);
-          bp.classList.toggle('is-real', phase === 2);
+          bp.classList.toggle('is-real',    phase === 2);
         }
       }
     });
 
-    // ============ ACT 1 · BLUEPRINT (0 → 1.2 timeline / 0–30% scroll) ============
-    tl.to(lines, {strokeDashoffset:0, duration:1.2, ease:'power2.out', stagger:{each:.004, from:'start'}}, 0);
-    tl.from(titleblock, {opacity:0, x:-20, duration:.5, ease:'power2.out'}, .25);
-    tl.from(callouts,   {opacity:0, y:-4, duration:.4, stagger:.07, ease:'power2.out'}, .55);
+    // ACT 1 · BLUEPRINT — line draw (SVG only) + label/callouts fade in
+    if(lines.length){
+      tl.to(lines, {strokeDashoffset:0, duration:1.2, ease:'power2.out', stagger:{each:.004, from:'start'}}, 0);
+    }
+    if(titleblock) tl.from(titleblock, {opacity:0, x:-20, duration:.5, ease:'power2.out'}, .25);
+    if(callouts.length) tl.from(callouts, {opacity:0, y:-4, duration:.4, stagger:.07, ease:'power2.out'}, .55);
 
-    // ============ ACT 2 · FABRICATION (1.4 → 2.5 / 30–66% scroll) ============
-    tl.to(forge, {opacity:1, duration:.5, ease:'power2.out'}, 1.4);
-    tl.to({}, {duration:.6}, 1.9);                                  // dwell on welding
-    tl.to(forge, {opacity:0, duration:.45, ease:'power2.in'}, 2.45);
+    // ACT 2 · FABRICATION — welds + sparks pulse
+    if(forge){
+      tl.to(forge, {opacity:1, duration:.5, ease:'power2.out'}, 1.4);
+      tl.to({}, {duration:.6}, 1.9);
+      tl.to(forge, {opacity:0, duration:.45, ease:'power2.in'}, 2.45);
+    } else {
+      tl.to({}, {duration:1.5}, 1.4);
+    }
 
-    // ============ ACT 3 · CONSTRUCTED (2.6 → 4 / 66–100% scroll) ============
-    tl.to(reality,   {clipPath:'inset(0 0% 0 0)', duration:1.2, ease:'power2.inOut'}, 2.6);
-    tl.to(blueprint, {opacity:0, duration:.8, ease:'power2.in'}, 3.0);
-    tl.to(reality,   {scale:1.06, duration:1, ease:'none', transformOrigin:'center center'}, 3.2);
+    // ACT 3 · CONSTRUCTED — real photo wipes in
+    if(reality)   tl.to(reality,   {clipPath:'inset(0 0% 0 0)', duration:1.2, ease:'power2.inOut'}, 2.6);
+    if(blueprint) tl.to(blueprint, {opacity:0, duration:.8, ease:'power2.in'}, 3.0);
+    if(reality)   tl.to(reality,   {scale:1.06, duration:1, ease:'none', transformOrigin:'center center'}, 3.2);
+  }
+
+  function initBlueprint(){
+    document.querySelectorAll('.bp-stage').forEach(initBlueprintStage);
   }
 
   /* -------- Form ---------- */

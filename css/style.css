@@ -939,19 +939,25 @@ button {
   position: relative;
 }
 
+/* Sticky stage sits BELOW the fixed nav so the bp__info title is never
+   obscured by the header during scroll. --nav-h tracks the rendered nav
+   height (set in JS) and falls back to 92px before the script runs. */
 .bp-stage__inner {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: var(--nav-h, 92px);
+  height: calc(100vh - var(--nav-h, 92px));
   display: grid;
   place-items: center;
-  padding: 80px var(--gutter);
+  padding: 32px var(--gutter);
 }
 
 .bp {
   position: relative;
   width: 100%;
-  max-width: 920px;
+  max-width: min(1440px, 75vw);
+  /* Cap height too — aspect-ratio + max-height keeps the bp inside the
+     viewport even on shorter screens (laptops, tablets in landscape). */
+  max-height: calc(100vh - var(--nav-h, 92px) - 64px);
   aspect-ratio: 16/9;
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -996,6 +1002,40 @@ button {
 .bp__blueprint .bp__lines {
   stroke-dasharray: 2000;
   stroke-dashoffset: 0;
+}
+
+/* === Image-based blueprint variant (Lusail Yacht Club, etc.) ===
+   The blueprint isn't an inline SVG but a high-res blueprint rendering loaded
+   as a background image. Same fabrication / reality animation hooks still apply. */
+.bp__blueprint--image {
+  background-color: #061534;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: filter .8s ease, opacity .8s ease;
+}
+
+/* Forge overlay sits over the image blueprint — must reach the corners */
+.bp__blueprint--image .bp__forge-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Image blueprints heat up to red-hot during fabrication */
+.bp.is-forging .bp__blueprint--image {
+  filter:
+    drop-shadow(0 0 6px rgba(255, 120, 60, .55))
+    drop-shadow(0 0 20px rgba(255, 60, 20, .35))
+    sepia(.55) hue-rotate(-35deg) saturate(1.65) brightness(1.05);
+}
+
+/* Yacht Club reality layer overrides the inherited Katara photo URL */
+.bp__reality--yacht {
+  background-size: cover;
+  background-position: center;
 }
 
 /* === FORGE / FABRICATION layer (welds + sparks, inside SVG) === */
@@ -1242,7 +1282,7 @@ button {
 
 .other-projects__grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
   gap: 24px;
 }
 
@@ -1326,6 +1366,15 @@ button {
   font-weight: 600;
   margin: 0;
   line-height: 1.2
+}
+
+.op-card__meta {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--steel-300);
+  margin: 8px 0 0;
+  line-height: 1.5
 }
 
 /* ==========================================================================

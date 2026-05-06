@@ -208,315 +208,52 @@
       <p>Scroll to watch the engineering plan transform into the finished structure.</p>
     </div>
   </div>
-
-  <!-- The transform stage — sticky scrub -->
-  <div class="bp-stage">
+  <!-- LUSAIL MARINA YACHT CLUB — image blueprint → constructed scroll reveal -->
+  <div class="bp-stage bp-stage--yacht">
     <div class="bp-stage__inner">
 
-      <div class="bp" data-bp>
-        <!-- Blueprint SVG layer — Katara Towers (front elevation, crossed scimitars) -->
-        <svg class="bp__blueprint" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <pattern id="bpGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(127,178,224,.13)" stroke-width=".5"/>
-            </pattern>
-            <pattern id="bpGridMajor" width="100" height="100" patternUnits="userSpaceOnUse">
-              <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(127,178,224,.22)" stroke-width=".8"/>
-            </pattern>
-            <pattern id="bpGroundHatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <line x1="0" y1="0" x2="0" y2="10" stroke="rgba(158,197,255,.35)" stroke-width=".5"/>
-            </pattern>
-            <pattern id="bpGlassHatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <line x1="0" y1="0" x2="0" y2="10" stroke="rgba(158,197,255,.28)" stroke-width=".5"/>
-            </pattern>
-            <marker id="bpDimArrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(207,225,255,.85)"/>
-            </marker>
-            <marker id="bpLeadDot" viewBox="0 0 6 6" refX="3" refY="3" markerWidth="6" markerHeight="6">
-              <circle cx="3" cy="3" r="2.2" fill="rgba(255,91,91,.95)"/>
-            </marker>
-            <!-- Tower silhouette clip paths (chalice — towers leaning inward toward each other) -->
-            <clipPath id="bpTower1Clip">
-              <path d="M 232 580 C 232 452, 296 316, 424 220 L 452 180 L 480 220 C 496 332, 464 452, 416 580 Z"/>
-            </clipPath>
-            <clipPath id="bpTower2Clip">
-              <path d="M 968 580 C 968 452, 904 316, 776 220 L 748 180 L 720 220 C 704 332, 736 452, 784 580 Z"/>
-            </clipPath>
-          </defs>
-
-          <!-- Grid background -->
-          <rect width="1200" height="720" fill="url(#bpGrid)"/>
-          <rect width="1200" height="720" fill="url(#bpGridMajor)"/>
-
-          <!-- Drawing border -->
-          <rect x="30" y="30" width="1140" height="660" fill="none" stroke="rgba(127,178,224,.4)" stroke-width="1"/>
-          <rect x="42" y="42" width="1116" height="636" fill="none" stroke="rgba(127,178,224,.18)" stroke-width=".5"/>
-
-          <!-- Faint dashed level reference lines (heights in metres) -->
-          <g stroke="rgba(127,178,224,.25)" stroke-width=".5" stroke-dasharray="2 4" fill="none">
-            <line x1="80" y1="180" x2="1120" y2="180"/>
-            <line x1="80" y1="280" x2="1120" y2="280"/>
-            <line x1="80" y1="380" x2="1120" y2="380"/>
-            <line x1="80" y1="480" x2="1120" y2="480"/>
-            <line x1="80" y1="580" x2="1120" y2="580"/>
-          </g>
-
-          <!-- Level markers (left side) -->
-          <g class="bp__levels" font-family="JetBrains Mono, monospace" font-size="9" fill="rgba(158,197,255,.85)">
-            <g>
-              <circle cx="80" cy="180" r="4" fill="none" stroke="rgba(158,197,255,.7)" stroke-width=".7"/>
-              <text x="60" y="173" text-anchor="middle">CROWN</text>
-              <text x="92" y="184">EL. +211.000</text>
-            </g>
-            <g>
-              <circle cx="80" cy="280" r="4" fill="none" stroke="rgba(158,197,255,.7)" stroke-width=".7"/>
-              <text x="60" y="273" text-anchor="middle">L 30</text>
-              <text x="92" y="284">EL. +160.000</text>
-            </g>
-            <g>
-              <circle cx="80" cy="380" r="4" fill="none" stroke="rgba(158,197,255,.7)" stroke-width=".7"/>
-              <text x="60" y="373" text-anchor="middle">L 18</text>
-              <text x="92" y="384">EL. +95.000</text>
-            </g>
-            <g>
-              <circle cx="80" cy="480" r="4" fill="none" stroke="rgba(158,197,255,.7)" stroke-width=".7"/>
-              <text x="60" y="473" text-anchor="middle">L 06</text>
-              <text x="92" y="484">EL. +30.000</text>
-            </g>
-            <g>
-              <circle cx="80" cy="580" r="4" fill="none" stroke="rgba(158,197,255,.7)" stroke-width=".7"/>
-              <text x="60" y="573" text-anchor="middle">PLAZA</text>
-              <text x="92" y="584">EL. ±0.000</text>
-            </g>
-          </g>
-
-          <!-- Static fills (visible from start) — subtle ground hatch + tower glass shading -->
-          <g class="bp__hatches">
-            <!-- Tower 1 glass shading -->
-            <path d="M 232 580 C 232 452, 296 316, 424 220 L 452 180 L 480 220 C 496 332, 464 452, 416 580 Z" fill="url(#bpGlassHatch)" opacity=".55"/>
-            <!-- Tower 2 glass shading -->
-            <path d="M 968 580 C 968 452, 904 316, 776 220 L 748 180 L 720 220 C 704 332, 736 452, 784 580 Z" fill="url(#bpGlassHatch)" opacity=".55"/>
-            <!-- Plaza ground hatch -->
-            <rect x="80" y="582" width="1040" height="36" fill="url(#bpGroundHatch)" opacity=".5"/>
-          </g>
-
-          <!-- BUILDING — Katara Towers, front elevation.
-               Twin crescent towers leaning inward toward each other, forming
-               a chalice silhouette inspired by Qatar's emblem of crossed
-               scimitars. Each tower ~211 m tall, 36 floors, glazed curtain-
-               wall facade, with a slender stainless steel spire at the apex. -->
-          <g class="bp__lines" stroke-linecap="round" stroke-linejoin="round" fill="none">
-
-            <!-- Plaza ground line -->
-            <line x1="60" y1="580" x2="1140" y2="580" stroke="rgba(207,225,255,.7)" stroke-width="1.2"/>
-
-            <!-- ============== TOWER 1 (LEFT crescent, leans inward) ============== -->
-            <!-- Outer (left) edge -->
-            <path d="M 232 580 C 232 452, 296 316, 424 220" stroke="#cfe1ff" stroke-width="2.4"/>
-            <!-- Roof apex with sharp central spire -->
-            <path d="M 424 220 L 452 180 L 480 220" stroke="#cfe1ff" stroke-width="2.2"/>
-            <!-- Inner (right) edge -->
-            <path d="M 480 220 C 496 332, 464 452, 416 580" stroke="#cfe1ff" stroke-width="2.4"/>
-
-            <!-- Floor bands -->
-            <g stroke="rgba(207,225,255,.75)" stroke-width=".7">
-              <line x1="234" y1="548" x2="428" y2="548"/>
-              <line x1="238" y1="516" x2="438" y2="516"/>
-              <line x1="244" y1="484" x2="449" y2="484"/>
-              <line x1="255" y1="448" x2="459" y2="448"/>
-              <line x1="269" y1="412" x2="468" y2="412"/>
-              <line x1="287" y1="376" x2="475" y2="376"/>
-              <line x1="309" y1="340" x2="480" y2="340"/>
-              <line x1="336" y1="304" x2="483" y2="304"/>
-              <line x1="365" y1="272" x2="484" y2="272"/>
-            </g>
-
-            <!-- Vertical mullions (clipped to silhouette) -->
-            <g stroke="rgba(158,197,255,.55)" stroke-width=".5" clip-path="url(#bpTower1Clip)">
-              <line x1="260" y1="596" x2="428" y2="204"/>
-              <line x1="296" y1="596" x2="438" y2="204"/>
-              <line x1="332" y1="596" x2="452" y2="204"/>
-              <line x1="368" y1="596" x2="466" y2="204"/>
-              <line x1="404" y1="596" x2="476" y2="204"/>
-            </g>
-
-            <!-- Sculptural crown finial above the spire tip -->
-            <line x1="452" y1="180" x2="452" y2="158" stroke="#cfe1ff" stroke-width="1"/>
-            <circle cx="452" cy="154" r="2.5" stroke="#cfe1ff" stroke-width="1" fill="#cfe1ff"/>
-
-            <!-- ============== TOWER 2 (RIGHT crescent, leans inward — mirror) ============== -->
-            <!-- Outer (right) edge -->
-            <path d="M 968 580 C 968 452, 904 316, 776 220" stroke="#cfe1ff" stroke-width="2.4"/>
-            <!-- Roof apex with sharp central spire -->
-            <path d="M 776 220 L 748 180 L 720 220" stroke="#cfe1ff" stroke-width="2.2"/>
-            <!-- Inner (left) edge -->
-            <path d="M 720 220 C 704 332, 736 452, 784 580" stroke="#cfe1ff" stroke-width="2.4"/>
-
-            <!-- Floor bands (mirrored) -->
-            <g stroke="rgba(207,225,255,.75)" stroke-width=".7">
-              <line x1="966" y1="548" x2="772" y2="548"/>
-              <line x1="962" y1="516" x2="762" y2="516"/>
-              <line x1="956" y1="484" x2="751" y2="484"/>
-              <line x1="945" y1="448" x2="741" y2="448"/>
-              <line x1="931" y1="412" x2="732" y2="412"/>
-              <line x1="913" y1="376" x2="725" y2="376"/>
-              <line x1="891" y1="340" x2="720" y2="340"/>
-              <line x1="864" y1="304" x2="717" y2="304"/>
-              <line x1="835" y1="272" x2="716" y2="272"/>
-            </g>
-
-            <!-- Vertical mullions (mirrored, clipped) -->
-            <g stroke="rgba(158,197,255,.55)" stroke-width=".5" clip-path="url(#bpTower2Clip)">
-              <line x1="940" y1="596" x2="772" y2="204"/>
-              <line x1="904" y1="596" x2="762" y2="204"/>
-              <line x1="868" y1="596" x2="748" y2="204"/>
-              <line x1="832" y1="596" x2="734" y2="204"/>
-              <line x1="796" y1="596" x2="724" y2="204"/>
-            </g>
-
-            <!-- Sculptural crown finial above the spire tip -->
-            <line x1="748" y1="180" x2="748" y2="158" stroke="#cfe1ff" stroke-width="1"/>
-            <circle cx="748" cy="154" r="2.5" stroke="#cfe1ff" stroke-width="1" fill="#cfe1ff"/>
-
-            <!-- ============== PODIUM / PLAZA BASE ============== -->
-            <!-- Curved arch connecting the two towers at podium level -->
-            <path d="M 416 580 C 480 568, 720 568, 784 580" stroke="rgba(207,225,255,.55)" stroke-width=".9" fill="none"/>
-            <!-- Podium edges -->
-            <line x1="120" y1="600" x2="1080" y2="600" stroke="rgba(207,225,255,.55)" stroke-width=".7"/>
-            <line x1="160" y1="615" x2="1040" y2="615" stroke="rgba(207,225,255,.4)" stroke-width=".6" stroke-dasharray="3 3"/>
-
-            <!-- Foundation pile caps -->
-            <g stroke="#cfe1ff" stroke-width=".9">
-              <line x1="232" y1="615" x2="232" y2="640"/>
-              <line x1="324" y1="615" x2="324" y2="640"/>
-              <line x1="416" y1="615" x2="416" y2="640"/>
-              <line x1="508" y1="615" x2="508" y2="640"/>
-              <line x1="600" y1="615" x2="600" y2="640"/>
-              <line x1="692" y1="615" x2="692" y2="640"/>
-              <line x1="784" y1="615" x2="784" y2="640"/>
-              <line x1="876" y1="615" x2="876" y2="640"/>
-              <line x1="968" y1="615" x2="968" y2="640"/>
-            </g>
-          </g>
-
-          <!-- ===== FORGE / FABRICATION layer (welds + sparks) ===== -->
-          <g class="bp__forge" opacity="0">
-            <!-- Weld glow pulses at primary joint nodes -->
-            <g class="bp__welds">
-              <circle cx="232" cy="580" r="22" class="bp__weld"/>
-              <circle cx="269" cy="412" r="22" class="bp__weld"/>
-              <circle cx="336" cy="304" r="22" class="bp__weld"/>
-              <circle cx="452" cy="180" r="22" class="bp__weld"/>
-              <circle cx="416" cy="580" r="22" class="bp__weld"/>
-              <circle cx="600" cy="600" r="22" class="bp__weld"/>
-              <circle cx="784" cy="580" r="22" class="bp__weld"/>
-              <circle cx="748" cy="180" r="22" class="bp__weld"/>
-              <circle cx="864" cy="304" r="22" class="bp__weld"/>
-              <circle cx="931" cy="412" r="22" class="bp__weld"/>
-              <circle cx="968" cy="580" r="22" class="bp__weld"/>
-            </g>
-            <!-- Spark particles flying from the same joints -->
-            <g class="bp__sparks">
-              <circle cx="232" cy="580" r="2"   class="bp__spark" style="--d:0s"/>
-              <circle cx="240" cy="576" r="1.4" class="bp__spark" style="--d:.45s"/>
-              <circle cx="269" cy="412" r="2"   class="bp__spark" style="--d:.18s"/>
-              <circle cx="274" cy="408" r="1.4" class="bp__spark" style="--d:.6s"/>
-              <circle cx="336" cy="304" r="2"   class="bp__spark" style="--d:.32s"/>
-              <circle cx="341" cy="300" r="1.4" class="bp__spark" style="--d:.78s"/>
-              <circle cx="452" cy="180" r="2.4" class="bp__spark" style="--d:.08s"/>
-              <circle cx="457" cy="176" r="1.4" class="bp__spark" style="--d:.55s"/>
-              <circle cx="416" cy="580" r="2"   class="bp__spark" style="--d:.25s"/>
-              <circle cx="600" cy="600" r="2"   class="bp__spark" style="--d:.35s"/>
-              <circle cx="784" cy="580" r="2"   class="bp__spark" style="--d:.5s"/>
-              <circle cx="748" cy="180" r="2.4" class="bp__spark" style="--d:.4s"/>
-              <circle cx="743" cy="176" r="1.4" class="bp__spark" style="--d:.85s"/>
-              <circle cx="864" cy="304" r="2"   class="bp__spark" style="--d:.5s"/>
-              <circle cx="859" cy="300" r="1.4" class="bp__spark" style="--d:.95s"/>
-              <circle cx="931" cy="412" r="2"   class="bp__spark" style="--d:.7s"/>
-              <circle cx="926" cy="408" r="1.4" class="bp__spark" style="--d:1.0s"/>
-              <circle cx="968" cy="580" r="2"   class="bp__spark" style="--d:.62s"/>
-              <circle cx="960" cy="576" r="1.4" class="bp__spark" style="--d:1.05s"/>
-            </g>
-            <!-- Forge stage label -->
-            <g class="bp__forge-label">
-              <rect x="430" y="668" width="340" height="26" rx="2" fill="rgba(255,91,31,.12)" stroke="rgba(255,91,31,.6)" stroke-width=".8"/>
-              <text x="600" y="685" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="3" fill="rgba(255,179,120,.95)">FABRICATION · WELDING IN PROGRESS</text>
-            </g>
-          </g>
-
-          <!-- Dimensions and red leader callouts -->
-          <g class="bp__dims" font-family="JetBrains Mono, monospace" font-size="10">
-
-            <!-- Crown spire callout -->
-            <g class="bp__callout">
-              <g stroke="rgba(255,91,91,.85)" stroke-width=".7" fill="none">
-                <line x1="452" y1="154" x2="320" y2="120" marker-start="url(#bpLeadDot)"/>
-                <line x1="320" y1="120" x2="60" y2="120"/>
+      <div class="bp bp--image" data-bp="yacht">
+        <!-- Blueprint layer (architectural rendering — PNG) -->
+        <div class="bp__blueprint bp__blueprint--image"
+             style="background-image:url('images/lusail_marina_Yacht_Club_blueprint_design.png')"
+             aria-hidden="true">
+          <!-- Forge / fabrication overlay — sparks distributed across the canopy -->
+          <svg class="bp__forge-overlay" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <g class="bp__forge" opacity="0">
+              <g class="bp__welds">
+                <circle cx="380" cy="380" r="22" class="bp__weld"/>
+                <circle cx="500" cy="300" r="22" class="bp__weld"/>
+                <circle cx="620" cy="240" r="22" class="bp__weld"/>
+                <circle cx="740" cy="260" r="22" class="bp__weld"/>
+                <circle cx="860" cy="320" r="22" class="bp__weld"/>
+                <circle cx="970" cy="400" r="22" class="bp__weld"/>
+                <circle cx="600" cy="500" r="22" class="bp__weld"/>
               </g>
-              <text x="60" y="113" fill="rgba(255,138,138,.95)">SCULPTURAL CROWN — STAINLESS STEEL</text>
-            </g>
-
-            <!-- Primary frame callout -->
-            <g class="bp__callout">
-              <g stroke="rgba(255,91,91,.85)" stroke-width=".7" fill="none">
-                <line x1="287" y1="376" x2="180" y2="320" marker-start="url(#bpLeadDot)"/>
-                <line x1="180" y1="320" x2="60" y2="320"/>
+              <g class="bp__sparks">
+                <circle cx="380" cy="380" r="2"   class="bp__spark" style="--d:0s"/>
+                <circle cx="385" cy="376" r="1.4" class="bp__spark" style="--d:.45s"/>
+                <circle cx="500" cy="300" r="2"   class="bp__spark" style="--d:.18s"/>
+                <circle cx="505" cy="296" r="1.4" class="bp__spark" style="--d:.6s"/>
+                <circle cx="620" cy="240" r="2.4" class="bp__spark" style="--d:.32s"/>
+                <circle cx="625" cy="236" r="1.4" class="bp__spark" style="--d:.78s"/>
+                <circle cx="740" cy="260" r="2"   class="bp__spark" style="--d:.08s"/>
+                <circle cx="745" cy="256" r="1.4" class="bp__spark" style="--d:.55s"/>
+                <circle cx="860" cy="320" r="2"   class="bp__spark" style="--d:.25s"/>
+                <circle cx="865" cy="316" r="1.4" class="bp__spark" style="--d:.7s"/>
+                <circle cx="970" cy="400" r="2"   class="bp__spark" style="--d:.4s"/>
+                <circle cx="600" cy="500" r="2"   class="bp__spark" style="--d:.5s"/>
               </g>
-              <text x="60" y="313" fill="rgba(255,138,138,.95)">PRIMARY STEEL FRAME · S460 + FIRE PROTECTION</text>
-            </g>
-
-            <!-- Curtain wall facade callout -->
-            <g class="bp__callout">
-              <g stroke="rgba(255,91,91,.85)" stroke-width=".7" fill="none">
-                <line x1="913" y1="376" x2="1020" y2="320" marker-start="url(#bpLeadDot)"/>
-                <line x1="1020" y1="320" x2="1140" y2="320"/>
+              <g class="bp__forge-label">
+                <rect x="430" y="668" width="340" height="26" rx="2" fill="rgba(255,91,31,.12)" stroke="rgba(255,91,31,.6)" stroke-width=".8"/>
+                <text x="600" y="685" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="3" fill="rgba(255,179,120,.95)">CANOPY · WELDING IN PROGRESS</text>
               </g>
-              <text x="1140" y="313" text-anchor="end" fill="rgba(255,138,138,.95)">UNITISED GLASS CURTAIN WALL FACADE</text>
             </g>
+          </svg>
+        </div>
 
-            <!-- Crescent / chalice callout -->
-            <g class="bp__callout">
-              <g stroke="rgba(255,91,91,.85)" stroke-width=".7" fill="none">
-                <line x1="600" y1="430" x2="1020" y2="450" marker-start="url(#bpLeadDot)"/>
-                <line x1="1020" y1="450" x2="1140" y2="450"/>
-              </g>
-              <text x="1140" y="443" text-anchor="end" fill="rgba(255,138,138,.95)">CROSSED-SCIMITARS · CRESCENT FORM</text>
-            </g>
-
-            <!-- Foundation callout -->
-            <g class="bp__callout">
-              <g stroke="rgba(255,91,91,.85)" stroke-width=".7" fill="none">
-                <line x1="324" y1="630" x2="200" y2="540" marker-start="url(#bpLeadDot)"/>
-                <line x1="200" y1="540" x2="60" y2="540"/>
-              </g>
-              <text x="60" y="534" fill="rgba(255,138,138,.95)">REINFORCED CONCRETE PILE FOUNDATION</text>
-            </g>
-
-            <!-- Spire-to-spire dimension -->
-            <line x1="452" y1="660" x2="748" y2="660" stroke="rgba(207,225,255,.7)" stroke-width=".7" marker-start="url(#bpDimArrow)" marker-end="url(#bpDimArrow)"/>
-            <line x1="452" y1="652" x2="452" y2="668" stroke="rgba(207,225,255,.7)" stroke-width=".7"/>
-            <line x1="748" y1="652" x2="748" y2="668" stroke="rgba(207,225,255,.7)" stroke-width=".7"/>
-            <text x="600" y="655" text-anchor="middle" fill="rgba(207,225,255,.85)" font-size="11">SPIRE TO SPIRE</text>
-
-            <!-- FRONT ELEVATION label -->
-            <text x="600" y="685" text-anchor="middle" fill="rgba(207,225,255,.7)" font-size="11" letter-spacing="2">FRONT ELEVATION</text>
-          </g>
-
-          <!-- Title block (top-right) -->
-          <g class="bp__titleblock" font-family="JetBrains Mono, monospace" fill="#7fb2e0">
-            <rect x="860" y="46" width="280" height="74" fill="rgba(6,24,63,.55)" stroke="#7fb2e0" stroke-width="1"/>
-            <line x1="860" y1="72" x2="1140" y2="72" stroke="#7fb2e0"/>
-            <line x1="1000" y1="72" x2="1000" y2="120" stroke="#7fb2e0"/>
-            <text x="872" y="64" font-size="11">METALYOL · STRUCTURAL</text>
-            <text x="872" y="90" font-size="10" opacity=".7">FRONT ELEVATION</text>
-            <text x="872" y="110" font-size="13">DWG-KAT-A-201</text>
-            <text x="1012" y="90" font-size="10" opacity=".7">SCALE</text>
-            <text x="1012" y="110" font-size="13">1 : 750</text>
-          </g>
-        </svg>
-
-        <!-- Reality layer (real photo) -->
-        <div class="bp__reality"></div>
+        <!-- Reality layer (real night photo) -->
+        <div class="bp__reality bp__reality--yacht"
+             style="background-image:linear-gradient(180deg, rgba(10,11,13,.15) 0%, rgba(10,11,13,.55) 100%), url('images/lusail_marina_Yacht_Club.jpg')"></div>
 
         <!-- Project info (sticks at top) -->
         <div class="bp__info">
@@ -525,15 +262,15 @@
             <span class="bp__phase-item" data-phase="1">Fabrication</span>
             <span class="bp__phase-item" data-phase="2">Constructed</span>
           </div>
-          <h3 class="bp__title">Katara Towers</h3>
+          <h3 class="bp__title">Lusail Marina Yacht Club</h3>
         </div>
 
         <!-- Project meta (sticks at bottom) -->
         <div class="bp__meta">
           <div><span>Location</span><strong>Lusail Marina, Qatar</strong></div>
-          <div><span>Scope</span><strong>Twin towers · steel + glass facade</strong></div>
-          <div><span>Client</span><strong>Katara Hospitality</strong></div>
-          <div><span>Height</span><strong>211 m · 36 floors</strong></div>
+          <div><span>Scope</span><strong>Curved canopy roof · steel space frame</strong></div>
+          <div><span>Client</span><strong>Qatari Diar / Lusail Real Estate</strong></div>
+          <div><span>Signature</span><strong>Free-form parametric shell · waterfront</strong></div>
         </div>
 
         <!-- Scroll progress hint -->
@@ -551,20 +288,22 @@
     <div class="other-projects">
       <h3 class="other-projects__title">More landmarks</h3>
       <div class="other-projects__grid">
-        <a class="op-card" href="https://metalyol.com/lusail-multi-purpose-hall/" target="_blank" rel="noopener">
+        <a class="op-card" href="https://metalyol.com/portfolio/lusail-multi-purpose-hall/" target="_blank" rel="noopener">
           <span class="op-card__bracket" aria-hidden="true"></span>
           <div class="op-card__img" style="background-image:url('https://metalyol.com/wp-content/uploads/2025/09/lusail-multipurpose-large-photo-untitled53-scaled-uai-2056x1371.webp')"></div>
           <div class="op-card__body">
             <span>Lusail · Qatar</span>
             <h4>Lusail Multi-Purpose Hall</h4>
+            <p class="op-card__meta">Long-span steel roof · multipurpose arena</p>
           </div>
         </a>
-        <a class="op-card" href="https://metalyol.com/lusail-marina-yacht-club/" target="_blank" rel="noopener">
+        <a class="op-card" href="https://metalyol.com/portfolio/katara-tower/" target="_blank" rel="noopener">
           <span class="op-card__bracket" aria-hidden="true"></span>
-          <div class="op-card__img" style="background-image:url('https://metalyol.com/wp-content/uploads/2025/09/lusail-yacht-club-uai-815x543.jpg')"></div>
+          <div class="op-card__img" style="background-image:url('https://metalyol.com/wp-content/uploads/2025/09/katara-towers-e1756975505905-uai-815x543.jpg')"></div>
           <div class="op-card__body">
             <span>Lusail Marina · Qatar</span>
-            <h4>Lusail Marina Yacht Club</h4>
+            <h4>Katara Towers</h4>
+            <p class="op-card__meta">Twin crescent towers · 211&nbsp;m · 36 floors</p>
           </div>
         </a>
       </div>
