@@ -4,6 +4,13 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  /* -------- Reduced-motion + GSAP guards ----------
+     Read user motion preference once and skip the heavier intro animations
+     when it is set, or when GSAP failed to load (CDN blocked, offline, …). */
+  const reduceMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hasGSAP = typeof gsap !== 'undefined';
+
   /* -------- Preloader ---------- */
   const pre = document.querySelector('.preloader');
   const preLogo = document.querySelectorAll('.preloader__logo span');
@@ -12,19 +19,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.body.classList.add('lock');
 
-  const preTl = gsap.timeline();
-  preTl
-    .to(preLogo, {y:0, duration:.8, ease:'power3.out', stagger:.04})
-    .to({}, {duration:1.4, ease:'power2.inOut',
-      onUpdate(){
-        const v = Math.round(this.progress()*100);
-        preCount.textContent = String(v).padStart(3,'0') + '%';
-        preBar.style.setProperty('--p', this.progress());
-      }
-    }, '-=.3')
-    .to('.preloader', {yPercent:-100, duration:1, ease:'power3.inOut',
-      onComplete(){ pre.style.display='none'; document.body.classList.remove('lock'); initAll(); }
-    }, '+=.15');
+  // Force-release the page after 6s in case the GSAP intro stalls (CDN slow,
+  // tab backgrounded, etc.) — guarantees the user always reaches the content.
+  let bootDone = false;
+  function bootApp(){
+    if(bootDone) return;
+    bootDone = true;
+    if(pre) pre.style.display = 'none';
+    document.body.classList.remove('lock');
+    if(hasGSAP) initAll();
+  }
+  setTimeout(bootApp, 6000);
+
+  if(!hasGSAP){
+    // GSAP not loaded — boot immediately, accept that hero stays static.
+    bootApp();
+  } else if(reduceMotion){
+    // Skip the cinematic preloader for reduced-motion users.
+    gsap.set(preLogo, {y:0});
+    if(preCount) preCount.textContent = '100%';
+    if(preBar)   preBar.style.setProperty('--p', 1);
+    gsap.to('.preloader', {opacity:0, duration:.25, onComplete: bootApp});
+  } else {
+    const preTl = gsap.timeline();
+    preTl
+      .to(preLogo, {y:0, duration:.8, ease:'power3.out', stagger:.04})
+      .to({}, {duration:1.4, ease:'power2.inOut',
+        onUpdate(){
+          const v = Math.round(this.progress()*100);
+          preCount.textContent = String(v).padStart(3,'0') + '%';
+          preBar.style.setProperty('--p', this.progress());
+        }
+      }, '-=.3')
+      .to('.preloader', {yPercent:-100, duration:1, ease:'power3.inOut',
+        onComplete: bootApp
+      }, '+=.15');
+  }
 
   /* -------- Nav ---------- */
   const nav = document.querySelector('.nav');
@@ -84,16 +114,22 @@ document.addEventListener('DOMContentLoaded', () => {
     initBlueprint();
   }
 
-  /* -------- Hero entry ---------- */
+  /* -------- Hero entry ----------
+     Reduced-motion users get the natural CSS state with no intro animation,
+     so the headline is always visible. clearProps ensures every `.from()`
+     wipes its inline transform/opacity afterwards — even if the timeline
+     gets interrupted mid-flight, the element snaps back to its CSS state. */
   function initHero(){
+    if(reduceMotion) return;
+
     const tl = gsap.timeline();
     tl
-      .from('.hero .eyebrow', {y:20, opacity:0, duration:.7, ease:'power3.out'})
-      .from('.hero__headline .line span', {yPercent:110, duration:1, stagger:.08, ease:'power4.out'}, '-=.4')
-      .from('.hero__sub', {y:20, opacity:0, duration:.7, ease:'power3.out'}, '-=.5')
+      .from('.hero .eyebrow', {y:20, opacity:0, duration:.7, ease:'power3.out', clearProps:'transform,opacity'})
+      .from('.hero__headline .line span', {yPercent:110, duration:1, stagger:.08, ease:'power4.out', clearProps:'transform'}, '-=.4')
+      .from('.hero__sub', {y:20, opacity:0, duration:.7, ease:'power3.out', clearProps:'transform,opacity'}, '-=.5')
       .from('.hero__service', {y:30, opacity:0, duration:.7, stagger:.1, ease:'power3.out', clearProps:'transform,opacity'}, '-=.4')
-      .from('.hero__cta > *', {y:20, opacity:0, duration:.6, stagger:.08, ease:'power3.out'}, '-=.4')
-      .from('.hero__scroll', {opacity:0, duration:.6}, '-=.2');
+      .from('.hero__cta > *', {y:20, opacity:0, duration:.6, stagger:.08, ease:'power3.out', clearProps:'transform,opacity'}, '-=.4')
+      .from('.hero__scroll', {opacity:0, duration:.6, clearProps:'opacity'}, '-=.2');
 
     gsap.to('.hero__grid', {
       yPercent:30, ease:'none',
@@ -140,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
       i = idx;
     };
     const start = () => {
+      if(reduceMotion) return; // Honour reduced-motion: keep card 0 active, no rotation
       stop();
       timer = setInterval(()=>{ if(!paused) setActive((i + 1) % cards.length); }, 3500);
     };
@@ -152,6 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setActive(0);
     start();
+
+    if(reduceMotion) return;
 
     // Pause cycling when hero is offscreen — saves cycles
     const io = new IntersectionObserver(entries=>{
@@ -232,46 +271,60 @@ document.addEventListener('DOMContentLoaded', () => {
     tick();
   }
 
-  /* -------- Reveals ---------- */
+  /* -------- Reveals ----------
+     Each ScrollTrigger animation snaps the element back to its natural CSS
+     state via `clearProps` once it finishes. If a trigger ever fires past
+     the element (already in view) `once: true` ensures we don't re-hide it. */
   function initReveals(){
+    if(reduceMotion) return;
+    const stOnce = (trigger, start='top 85%') => ({trigger, start, once:true});
+
     gsap.utils.toArray('.section-head').forEach(h=>{
       gsap.from(h.children, {
         opacity:0, y:30, duration:.9, stagger:.1, ease:'power3.out',
-        scrollTrigger:{trigger:h, start:'top 85%'}
+        clearProps:'transform,opacity',
+        scrollTrigger: stOnce(h)
       });
     });
     gsap.utils.toArray('.service').forEach((s,i)=>{
       gsap.from(s, {
         opacity:0, y:40, duration:.8, ease:'power3.out', delay:i*.08,
-        scrollTrigger:{trigger:s, start:'top 85%'}
+        clearProps:'transform,opacity',
+        scrollTrigger: stOnce(s)
       });
     });
     gsap.utils.toArray('.why__item').forEach(item=>{
       gsap.from(item, {
         opacity:0, x:-30, duration:.8, ease:'power3.out',
-        scrollTrigger:{trigger:item, start:'top 85%'}
+        clearProps:'transform,opacity',
+        scrollTrigger: stOnce(item)
       });
     });
     gsap.utils.toArray('.op-card').forEach((c,i)=>{
       gsap.from(c, {
         opacity:0, y:40, duration:.8, ease:'power3.out', delay:i*.06,
-        scrollTrigger:{trigger:c, start:'top 90%'}
+        clearProps:'transform,opacity',
+        scrollTrigger: stOnce(c, 'top 90%')
       });
     });
     gsap.from('.footer__monogram', {
       opacity:0, y:60, duration:1.2, ease:'power3.out',
-      scrollTrigger:{trigger:'.footer__monogram', start:'top 90%'}
+      clearProps:'transform,opacity',
+      scrollTrigger: stOnce('.footer__monogram', 'top 90%')
     });
   }
 
-  /* -------- Counters ---------- */
+  /* -------- Counters ----------
+     Skip counters inside [data-metric-row] — those are handled by project.js
+     (which supports decimals) on /projects/*.html pages. */
   function initCounters(){
     document.querySelectorAll('[data-count]').forEach(el=>{
+      if (el.closest('[data-metric-row]')) return;
       const target = +el.dataset.count;
       const obj = {v:0};
       gsap.to(obj, {
         v:target, duration:2.2, ease:'power2.out',
-        scrollTrigger:{trigger:el, start:'top 85%'},
+        scrollTrigger:{trigger:el, start:'top 85%', once:true},
         onUpdate(){ el.textContent = Math.round(obj.v).toLocaleString(); }
       });
     });
