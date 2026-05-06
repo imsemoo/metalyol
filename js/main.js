@@ -111,7 +111,59 @@ document.addEventListener('DOMContentLoaded', () => {
     initReveals();
     initCounters();
     initServices();
+    initWhyAccordion();
     initBlueprint();
+  }
+
+  /* -------- Cookie consent ----------
+     Show the banner only if the user hasn't already accepted. The choice is
+     stored in localStorage — we store no other data, no tracking. */
+  (function initCookieBar(){
+    const bar = document.getElementById('cookieBar');
+    if (!bar) return;
+    let accepted = false;
+    try { accepted = localStorage.getItem('metalyol-cookies') === 'ok'; } catch(_) {}
+    if (accepted) return;
+    bar.hidden = false;
+    bar.querySelector('[data-cookie-accept]')?.addEventListener('click', () => {
+      try { localStorage.setItem('metalyol-cookies', 'ok'); } catch(_) {}
+      bar.style.opacity = '0';
+      bar.style.transform = 'translateY(20px)';
+      bar.style.transition = 'opacity .25s ease, transform .25s ease';
+      setTimeout(() => bar.hidden = true, 280);
+    });
+  })();
+
+  /* -------- Why-us accordion ----------
+     Each .why__item toggles open/closed on click + Enter/Space (keyboard).
+     Opening one closes the others — keeps the section tidy. */
+  function initWhyAccordion(){
+    const items = document.querySelectorAll('.why__item');
+    if (!items.length) return;
+
+    function setOpen(target, open){
+      target.classList.toggle('is-open', open);
+      target.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    items.forEach(item => {
+      const toggle = () => {
+        const willOpen = !item.classList.contains('is-open');
+        // Close siblings — only one open at a time (true accordion)
+        items.forEach(other => { if (other !== item) setOpen(other, false); });
+        setOpen(item, willOpen);
+      };
+      item.addEventListener('click', toggle);
+      item.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggle();
+        }
+      });
+    });
+
+    // Open the first one by default — gives users a hint that they expand
+    setOpen(items[0], true);
   }
 
   /* -------- Hero entry ----------
