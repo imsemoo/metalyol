@@ -41,14 +41,14 @@ document.addEventListener('DOMContentLoaded', () => {
     bootDone = true;
     if (stage) {
       stage.classList.add('is-finishing');
-      setTimeout(() => { stage.style.display = 'none'; }, 950);
+      setTimeout(() => { stage.style.display = 'none'; }, 600);
     }
     document.body.classList.remove('lock');
     if (hasGSAP) initAll();
   }
 
-  // Hard safety: 9s timeout in case rAF stalls (tab backgrounded, etc.)
-  setTimeout(bootApp, 9000);
+  // Hard safety: 5s timeout in case rAF stalls (tab backgrounded, etc.)
+  setTimeout(bootApp, 5000);
 
   if (!stage) {
     // No loader on this page — boot immediately.
@@ -57,16 +57,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // The sequence ALWAYS plays the full duration so the brand intro lands.
     // Reduce-motion users still see structure & status, but grain/sparks
     // are CSS-disabled (see @media (prefers-reduced-motion) in style.css).
-    // ----- Timeline -----
-    const TOTAL      = 7000;     // ms — full sequence runtime
-    const SCAN_START = 200;
-    const SCAN_END   = 3300;
+    // ----- Timeline (2.5s) -----
+    const TOTAL      = 2500;
+    const SCAN_START = 100;
+    const SCAN_END   = 1300;
     const HEX_AT     = SCAN_START + (SCAN_END - SCAN_START) * 0.70;
-    const TAGLINE_AT = 3500;
+    const TAGLINE_AT = 1400;
     const SVC_WINDOWS = [
-      [ 800, 2800, 'Sourcing mill stock — beams · plates · alloys'],
-      [2800, 4600, 'Welding cell online — AWS D1.1 / EN 1090 EXC4'],
-      [4600, 6600, 'BIM lift plan synced — erection crew dispatched']
+      [ 250, 1000, 'Sourcing mill stock — beams · plates · alloys'],
+      [1000, 1700, 'Welding cell online — AWS D1.1 / EN 1090 EXC4'],
+      [1700, 2500, 'BIM lift plan synced — erection crew dispatched']
     ];
 
     // UTC clock (1Hz)
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelAnimationFrame(raf);
         // Snap stage to "done" state for the centered logo, then boot.
         stage.classList.add('is-done');
-        setTimeout(bootApp, 700);
+        setTimeout(bootApp, 200);
         return;
       }
       raf = requestAnimationFrame(loaderFrame);

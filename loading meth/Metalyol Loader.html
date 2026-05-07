@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Metalyol — Loader Explorations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    background: #16181b;
+    font-family: "Inter", system-ui, sans-serif;
+    color: #e8e8e8;
+    overflow: hidden;
+    height: 100%;
+  }
+  #root { width: 100vw; height: 100vh; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="loader-blueprint.jsx"></script>
+<script type="text/babel" src="loader-forge.jsx"></script>
+<script type="text/babel" src="loader-hex.jsx"></script>
+
+<script type="text/babel" data-presets="react">
+// Each loader is rendered at 1280x720 (16:9). Design canvas scales them.
+const W = 1280, H = 720;
+
+function App() {
+  return (
+    <window.DesignCanvas title="Metalyol — Website Loader" subtitle="3 directions · 4s loop · particles">
+      <window.DCSection
+        id="loaders"
+        title="Loader Variations"
+        subtitle="Click any artboard to focus. They all loop continuously for review."
+      >
+        <window.DCArtboard id="blueprint" label="A · Blueprint" width={W} height={H}>
+          <window.LoaderBlueprint width={W} height={H} loop={true} />
+        </window.DCArtboard>
+        <window.DCArtboard id="forge" label="B · Forge / Spark" width={W} height={H}>
+          <window.LoaderForge width={W} height={H} loop={true} />
+        </window.DCArtboard>
+        <window.DCArtboard id="hex" label="C · Hexagon Assemble" width={W} height={H}>
+          <window.LoaderHexAssemble width={W} height={H} loop={true} />
+        </window.DCArtboard>
+      </window.DCSection>
+    </window.DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

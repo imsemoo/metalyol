@@ -691,42 +691,19 @@ button {
   -webkit-text-stroke: 0;
 }
 
-.loader-svc-cat {
-  margin-top: 12px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: .34em;
-  color: var(--red);
-  text-transform: uppercase;
-  height: 14px;
-}
-
-.loader-svc.is-done .loader-svc-cat { color: var(--ink-dim); }
-
-.loader-svc-ttl {
-  margin-top: 4px;
+/* The single service name — was previously cat + ttl + desc */
+.loader-svc-name {
+  margin-top: 14px;
   font-weight: 700;
-  font-size: 19px;
+  font-size: 22px;
   line-height: 1.15;
+  letter-spacing: .03em;
   text-transform: uppercase;
-  letter-spacing: .02em;
   color: var(--ink);
+  transition: color .4s ease;
 }
 
-.loader-svc-desc {
-  margin-top: 8px;
-  font-weight: 300;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--ink-dim);
-  max-width: 38ch;
-  /* Cap to two lines so the cards stay compact */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-          line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+.loader-svc.is-done .loader-svc-name { color: var(--ink-dim); }
 
 .loader-svc-bar {
   position: absolute;
@@ -834,22 +811,20 @@ button {
 
 .loader-stage.is-finishing {
   transform: translateY(-100%);
-  transition: transform .9s cubic-bezier(.65, 0, .35, 1);
+  transition: transform .6s cubic-bezier(.65, 0, .35, 1);
 }
 
-/* ---- Short screens: drop the long description so the cards stay compact
-   and never reach into the logo zone -------------------------------------- */
+/* ---- Short screens: shrink the cards so they never reach the logo --- */
 @media (max-height: 760px) {
   .loader-services { bottom: 76px; }
-  .loader-svc-desc { display: none; }
   .loader-svc-num  { font-size: 52px; }
+  .loader-svc-name { margin-top: 10px; font-size: 19px; }
 }
 
 @media (max-height: 620px) {
   .loader-tagline { display: none; }
-  .loader-svc-num { font-size: 42px; }
-  .loader-svc-cat { margin-top: 8px; }
-  .loader-svc-ttl { font-size: 16px; }
+  .loader-svc-num  { font-size: 42px; }
+  .loader-svc-name { margin-top: 8px; font-size: 16px; }
   .loader-services { bottom: 64px; }
 }
 
@@ -863,8 +838,9 @@ button {
     right: 16px;
   }
   .loader-svc { padding: 12px 14px 14px; }
-  .loader-svc-num { font-size: 40px; }
-  .loader-svc-desc, .loader-svc-ticks { display: none; }
+  .loader-svc-num  { font-size: 40px; }
+  .loader-svc-name { margin-top: 6px; font-size: 16px; }
+  .loader-svc-ticks { display: none; }
   .loader-hud-top, .loader-hud-bot { left: 16px; right: 16px; }
   .loader-crosshair { display: none; }
   .loader-load-label { min-width: 0; }

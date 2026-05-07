@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metalyol — Loading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================================
+     METALYOL LOADER — Hexagon Assemble
+     Drop the .metalyol-loader element + this <style> + script
+     anywhere. Call MetalyolLoader.hide() when your app is ready,
+     or let it auto-hide after DURATION ms.
+     ============================================================ */
+
+  :root {
+    --ml-bg:        #0A0A0B;
+    --ml-fg:        #EDEDED;
+    --ml-mute:      #888;
+    --ml-dim:       #555;
+    --ml-accent:    #C42525;
+    --ml-accent-2:  #E03030;
+    --ml-accent-3:  #A01818;
+    --ml-line:      #1a1a1c;
+    --ml-card-bg:   rgba(255,255,255,0.02);
+    --ml-card-bd:   rgba(255,255,255,0.08);
+    --ml-duration:  4000ms;
+  }
+
+  .metalyol-loader * { box-sizing: border-box; }
+
+  .metalyol-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--ml-bg);
+    color: var(--ml-fg);
+    font-family: "Inter", "Helvetica Neue", system-ui, sans-serif;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 600ms ease;
+  }
+  .metalyol-loader.is-hiding { opacity: 0; pointer-events: none; }
+
+  /* Radial glow */
+  .metalyol-loader::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 45%, rgba(196,37,37,0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  /* Grain */
+  .metalyol-loader::after {
+    content: "";
+    position: absolute; inset: 0;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    pointer-events: none;
+  }
+
+  /* Layout stage */
+  .ml-stage {
+    position: absolute; inset: 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    padding: 36px 36px 28px;
+  }
+
+  /* Top brand line */
+  .ml-topline {
+    text-align: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.5em;
+    color: var(--ml-dim);
+    text-transform: uppercase;
+  }
+
+  /* Center hex + wordmark area */
+  .ml-center {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .ml-hex-wrap {
+    position: relative;
+    width: 240px;
+    height: 240px;
+  }
+  .ml-hex {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    overflow: visible;
+  }
+
+  /* Each segment flies in from outside its midpoint angle (320px outward),
+     with a slight rotation that unwinds. Matches the original React easing
+     (easeOutQuart) and timing (each seg ~1600ms, staggered 200ms). */
+  .ml-seg {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: ml-seg-fly 1600ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  }
+  /* midpoint angles: i=0 -60deg, i=1 0deg, i=2 60deg, i=3 120deg, i=4 180deg, i=5 240deg */
+  /* dx = cos(a)*320, dy = sin(a)*320 */
+  .ml-seg-0 { animation-delay:  200ms; --tx:  160px;  --ty: -277px; --rot:   30deg; }
+  .ml-seg-1 { animation-delay:  400ms; --tx:  320px;  --ty:    0px; --rot:  -30deg; }
+  .ml-seg-2 { animation-delay:  600ms; --tx:  160px;  --ty:  277px; --rot:   30deg; }
+  .ml-seg-3 { animation-delay:  800ms; --tx: -160px;  --ty:  277px; --rot:  -30deg; }
+  .ml-seg-4 { animation-delay: 1000ms; --tx: -320px;  --ty:    0px; --rot:   30deg; }
+  .ml-seg-5 { animation-delay: 1200ms; --tx: -160px;  --ty: -277px; --rot:  -30deg; }
+
+  @keyframes ml-seg-fly {
+    0%   { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(var(--rot)); }
+    100% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  }
+
+  .ml-hex-rings,
+  .ml-hex-inner {
+    opacity: 0;
+    animation: ml-fade-in 1200ms cubic-bezier(0.215,0.61,0.355,1) 1800ms forwards;
+  }
+  .ml-hex-rings { animation-name: ml-fade-in-half; }
+  @keyframes ml-fade-in-half { to { opacity: 0.5; } }
+
+  /* Wordmark — appears at 0.45..0.75 of timeline (1800ms..3000ms) */
+  .ml-wordmark {
+    margin-top: 36px;
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 700;
+    font-size: 76px;
+    letter-spacing: 0.42em;
+    text-indent: 0.42em;
+    color: #F5F5F5;
+    opacity: 0;
+    transform: translateY(14px);
+    animation: ml-rise 1200ms cubic-bezier(0.215,0.61,0.355,1) 1800ms forwards;
+    line-height: 1;
+  }
+  /* Tagline — 0.60..0.85 (2400ms..3400ms) */
+  .ml-tagline {
+    margin-top: 22px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.6em;
+    color: var(--ml-mute);
+    text-align: center;
+    opacity: 0;
+    animation: ml-fade-in 1000ms cubic-bezier(0.215,0.61,0.355,1) 2400ms forwards;
+    text-transform: uppercase;
+  }
+
+  @keyframes ml-fade-in {
+    to { opacity: 1; }
+  }
+  @keyframes ml-rise {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Service cards */
+  .ml-services {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 0 24px;
+    margin-bottom: 28px;
+  }
+  /* Service cards — staggered 0.50..0.80 / 0.60..0.90 / 0.70..1.00
+     (2000..3200ms / 2400..3600ms / 2800..4000ms). Border-top brightens
+     when card crosses 50% of its own animation. */
+  .ml-service {
+    flex: 1;
+    max-width: 320px;
+    padding: 20px 22px;
+    background: var(--ml-card-bg);
+    border: 1px solid var(--ml-card-bd);
+    border-top: 2px solid rgba(196,37,37,0.2);
+    opacity: 0;
+    transform: translateY(24px);
+    animation: ml-rise 1200ms cubic-bezier(0.215,0.61,0.355,1) forwards,
+               ml-border-on 600ms ease-out forwards;
+  }
+  .ml-service-0 { animation-delay: 2000ms, 2600ms; }
+  .ml-service-1 { animation-delay: 2400ms, 3000ms; }
+  .ml-service-2 { animation-delay: 2800ms, 3400ms; }
+
+  @keyframes ml-border-on {
+    to { border-top-color: var(--ml-accent); }
+  }
+
+  .ml-service-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .ml-service-num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--ml-accent);
+  }
+  .ml-service-tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--ml-dim);
+  }
+  .ml-service-title {
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .ml-service-sub {
+    font-size: 13px;
+    color: #9a9a9a;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+  }
+
+  /* Progress bar */
+  .ml-progress {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--ml-dim);
+  }
+  .ml-progress-label { text-transform: uppercase; }
+  .ml-progress-track {
+    flex: 1;
+    height: 1px;
+    background: var(--ml-line);
+    position: relative;
+  }
+  .ml-progress-fill {
+    position: absolute;
+    left: 0; top: -1px; height: 3px;
+    width: 0%;
+    background: var(--ml-accent);
+    box-shadow: 0 0 10px var(--ml-accent);
+    animation: ml-fill var(--ml-duration) linear forwards;
+  }
+  .ml-progress-pct {
+    color: var(--ml-fg);
+    min-width: 50px;
+    text-align: right;
+  }
+
+  @keyframes ml-fill {
+    to { width: 100%; }
+  }
+
+  /* Floating particles */
+  .ml-particles {
+    position: absolute; inset: 0;
+    pointer-events: none;
+  }
+  .ml-particle {
+    position: absolute;
+    border-radius: 50%;
+    background: #bbb;
+    animation: ml-drift linear infinite;
+  }
+  @keyframes ml-drift {
+    0%   { transform: translate(0, 0); }
+    50%  { transform: translate(10px, -16px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .ml-services { flex-direction: column; align-items: center; gap: 12px; }
+    .ml-service { width: 100%; max-width: 460px; }
+    .ml-wordmark { font-size: 52px; letter-spacing: 0.32em; text-indent: 0.32em; }
+    .ml-hex-wrap { width: 180px; height: 180px; }
+  }
+  @media (max-width: 520px) {
+    .ml-stage { padding: 24px 20px 20px; }
+    .ml-wordmark { font-size: 38px; letter-spacing: 0.26em; text-indent: 0.26em; }
+    .ml-tagline { font-size: 9px; letter-spacing: 0.4em; }
+    .ml-hex-wrap { width: 140px; height: 140px; }
+    .ml-service-title { font-size: 20px; }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .metalyol-loader *,
+    .metalyol-loader *::before,
+    .metalyol-loader *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body style="margin:0;background:#16181b;">
+
+<!-- ============================================================
+     LOADER MARKUP — copy from <div class="metalyol-loader"> ...
+     ... down to its closing </div>.  Paste at the top of <body>.
+     ============================================================ -->
+<div class="metalyol-loader" id="metalyolLoader" role="status" aria-live="polite" aria-label="Loading Metalyol">
+
+  <!-- Floating particles (generated by JS) -->
+  <div class="ml-particles" id="mlParticles" aria-hidden="true"></div>
+
+  <div class="ml-stage">
+
+    <!-- Top -->
+    <div class="ml-topline">METALYOL · STEEL GROUP</div>
+
+    <!-- Center: Hexagon + wordmark -->
+    <div class="ml-center">
+      <div class="ml-hex-wrap" aria-hidden="true">
+        <svg class="ml-hex" viewBox="-130 -130 260 260">
+          <defs>
+            <linearGradient id="mlHexGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#E03030"/>
+              <stop offset="100%" stop-color="#A01818"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Outer faint rings -->
+          <g class="ml-hex-rings">
+            <polygon points="0,-148.5 128.6,-74.25 128.6,74.25 0,148.5 -128.6,74.25 -128.6,-74.25"
+              fill="none" stroke="#2a2a2c" stroke-width="1"/>
+            <polygon points="0,-176 152.4,-88 152.4,88 0,176 -152.4,88 -152.4,-88"
+              fill="none" stroke="#2a2a2c" stroke-width="1"/>
+          </g>
+
+          <!-- 6 segments — generated programmatically below for clarity -->
+          <!-- Each segment is a triangle from center to 2 hex vertices, with an inner notch removed -->
+          <!-- Segment vertices (R=110): angles -90, -30, 30, 90, 150, 210 degrees -->
+          <!-- v0=(0,-110) v1=(95.26,-55) v2=(95.26,55) v3=(0,110) v4=(-95.26,55) v5=(-95.26,-55) -->
+
+          <!-- Segment 0: v5 - v0 (top-left quad-tri) — actually let's do top wedge -->
+          <!-- We'll make 6 wedges, each between consecutive vertices -->
+
+          <!-- wedge 0: v0 (top) to v1 -->
+          <g class="ml-seg ml-seg-0">
+            <polygon points="0,0 0,-110 95.26,-55" fill="url(#mlHexGrad)" stroke="#3a0808" stroke-width="1"/>
+            <polygon points="0,0 0,-60.5 52.39,-30.25" fill="#7a1414"/>
+          </g>
+          <g class="ml-seg ml-seg-1">
+            <polygon points="0,0 95.26,-55 95.26,55" fill="url(#mlHexGrad)" stroke="#3a0808" stroke-width="1"/>
+            <polygon points="0,0 52.39,-30.25 52.39,30.25" fill="#5a0e0e"/>
+          </g>
+          <g class="ml-seg ml-seg-2">
+            <polygon points="0,0 95.26,55 0,110" fill="url(#mlHexGrad)" stroke="#3a0808" stroke-width="1"/>
+            <polygon points="0,0 52.39,30.25 0,60.5" fill="#7a1414"/>
+          </g>
+          <g class="ml-seg ml-seg-3">
+            <polygon points="0,0 0,110 -95.26,55" fill="url(#mlHexGrad)" stroke="#3a0808" stroke-width="1"/>
+            <polygon points="0,0 0,60.5 -52.39,30.25" fill="#5a0e0e"/>
+          </g>
+          <g class="ml-seg ml-seg-4">
+            <polygon points="0,0 -95.26,55 -95.26,-55" fill="url(#mlHexGrad)" stroke="#3a0808" stroke-width="1"/>
+            <polygon points="0,0 -52.39,30.25 -52.39,-30.25" fill="#7a1414"/>
+          </g>
+          <g class="ml-seg ml-seg-5">
+            <polygon points="0,0 -95.26,-55 0,-110" fill="url(#mlHexGrad)" stroke="#3a0808" stroke-width="1"/>
+            <polygon points="0,0 -52.39,-30.25 0,-60.5" fill="#5a0e0e"/>
+          </g>
+
+          <!-- Inner small hex -->
+          <polygon class="ml-hex-inner"
+            points="0,-35.2 30.48,-17.6 30.48,17.6 0,35.2 -30.48,17.6 -30.48,-17.6"
+            fill="none" stroke="#C42525" stroke-width="2"/>
+        </svg>
+      </div>
+
+      <div class="ml-wordmark">METALYOL</div>
+      <div class="ml-tagline">Sourced · Fabricated · Erected</div>
+    </div>
+
+    <!-- Services -->
+    <div class="ml-services">
+      <div class="ml-service ml-service-0">
+        <div class="ml-service-head">
+          <span class="ml-service-num">01 /</span>
+          <span class="ml-service-tag">SERVICE</span>
+        </div>
+        <div class="ml-service-title">Trading</div>
+        <div class="ml-service-sub">Steel Trading &amp; Mill Supply</div>
+      </div>
+      <div class="ml-service ml-service-1">
+        <div class="ml-service-head">
+          <span class="ml-service-num">02 /</span>
+          <span class="ml-service-tag">SERVICE</span>
+        </div>
+        <div class="ml-service-title">Fabrication</div>
+        <div class="ml-service-sub">Industrial Steel Fabrication</div>
+      </div>
+      <div class="ml-service ml-service-2">
+        <div class="ml-service-head">
+          <span class="ml-service-num">03 /</span>
+          <span class="ml-service-tag">SERVICE</span>
+        </div>
+        <div class="ml-service-title">Construction</div>
+        <div class="ml-service-sub">Turnkey Construction &amp; Erection</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="ml-progress">
+      <span class="ml-progress-label">Initializing</span>
+      <div class="ml-progress-track">
+        <div class="ml-progress-fill" id="mlProgressFill"></div>
+      </div>
+      <span class="ml-progress-pct" id="mlProgressPct">00%</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     LOADER SCRIPT — handles particles, % counter, auto-hide.
+     ============================================================ -->
+<script>
+(function () {
+  var DURATION = 4000;        // total animation length, ms (match --ml-duration)
+  var AUTOHIDE = true;        // auto-fade after DURATION
+  var PARTICLES = 36;
+
+  var loader   = document.getElementById('metalyolLoader');
+  var pField   = document.getElementById('mlParticles');
+  var pctEl    = document.getElementById('mlProgressPct');
+  if (!loader) return;
+
+  // Generate particles
+  for (var i = 0; i < PARTICLES; i++) {
+    var d = document.createElement('div');
+    d.className = 'ml-particle';
+    var s = (0.5 + Math.random() * 1.8).toFixed(2);
+    d.style.left   = (Math.random() * 100) + '%';
+    d.style.top    = (Math.random() * 100) + '%';
+    d.style.width  = s + 'px';
+    d.style.height = s + 'px';
+    d.style.opacity = (0.1 + Math.random() * 0.4).toFixed(2);
+    d.style.animationDuration = (5 + Math.random() * 10).toFixed(1) + 's';
+    d.style.animationDelay    = (Math.random() * 5).toFixed(1) + 's';
+    pField.appendChild(d);
+  }
+
+  // % counter synced with progress fill duration
+  var startTs = null;
+  function tick(ts) {
+    if (startTs === null) startTs = ts;
+    var p = Math.min(1, (ts - startTs) / DURATION);
+    pctEl.textContent = (p < 1 ? String(Math.floor(p * 100)).padStart(2, '0') : '100') + '%';
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // Public API for the host page
+  window.MetalyolLoader = {
+    hide: function () {
+      loader.classList.add('is-hiding');
+      setTimeout(function () {
+        if (loader.parentNode) loader.parentNode.removeChild(loader);
+      }, 700);
+    }
+  };
+
+  if (AUTOHIDE) {
+    setTimeout(function () { window.MetalyolLoader.hide(); }, DURATION + 200);
+  }
+
+  // If you'd rather hide on window.load, comment out AUTOHIDE block above and use:
+  // window.addEventListener('load', function () { window.MetalyolLoader.hide(); });
+})();
+</script>
+
+</body>
+</html>
