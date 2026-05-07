@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -c \"d:/MY work/TakTek/2026/metalyol/js/main.js\")",
+      "Bash(grep -n \"preloader\\\\b\\\\|PRELOADER\\\\|Tablet$\\\\|Mobile$\\\\|prefers-reduced-motion\" \"d:/MY work/TakTek/2026/metalyol/css/style.css\")"
+    ]
+  }
+}

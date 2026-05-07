@@ -11,49 +11,202 @@ document.addEventListener('DOMContentLoaded', () => {
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const hasGSAP = typeof gsap !== 'undefined';
 
-  /* -------- Preloader ---------- */
-  const pre = document.querySelector('.preloader');
-  const preLogo = document.querySelectorAll('.preloader__logo span');
-  const preCount = document.querySelector('.preloader__counter');
-  const preBar = document.querySelector('.preloader__bar');
+  /* -------- Preloader · Metalyol scan-line sequence ----------
+     A vertical scan line wipes across the brand logo (left → right) over
+     ~3.1s, revealing the real wordmark from a faint ghost. Sparks emit at
+     the scan position. The hex on the logo flashes when the scan crosses
+     ~70% across. Three service cards activate in sequence with status text
+     in the HUD. Master progress 0→100% over 7 seconds, then the stage
+     fades + slides up and the page boots. */
+  const stage      = document.getElementById('loaderStage');
+  const logoZone   = document.getElementById('loaderLogoZone');
+  const scanLine   = document.getElementById('loaderScanLine');
+  const scanHalo   = document.getElementById('loaderScanHalo');
+  const hexFlash   = document.getElementById('loaderHexFlash');
+  const weldFlash  = document.getElementById('loaderWeldFlash');
+  const sparksEl   = document.getElementById('loaderSparks');
+  const tagline    = document.getElementById('loaderTagline');
+  const trackFill  = document.getElementById('loaderTrackFill');
+  const trackMark  = document.getElementById('loaderTrackMark');
+  const pctEl      = document.getElementById('loaderPct');
+  const labelEl    = document.getElementById('loaderLabel');
+  const clockEl    = document.getElementById('loaderClock');
+  const svcs       = document.querySelectorAll('.loader-svc');
 
   document.body.classList.add('lock');
 
-  // Force-release the page after 6s in case the GSAP intro stalls (CDN slow,
-  // tab backgrounded, etc.) — guarantees the user always reaches the content.
   let bootDone = false;
   function bootApp(){
-    if(bootDone) return;
+    if (bootDone) return;
     bootDone = true;
-    if(pre) pre.style.display = 'none';
+    if (stage) {
+      stage.classList.add('is-finishing');
+      setTimeout(() => { stage.style.display = 'none'; }, 950);
+    }
     document.body.classList.remove('lock');
-    if(hasGSAP) initAll();
+    if (hasGSAP) initAll();
   }
-  setTimeout(bootApp, 6000);
 
-  if(!hasGSAP){
-    // GSAP not loaded — boot immediately, accept that hero stays static.
+  // Hard safety: 9s timeout in case rAF stalls (tab backgrounded, etc.)
+  setTimeout(bootApp, 9000);
+
+  if (!stage) {
+    // No loader on this page — boot immediately.
     bootApp();
-  } else if(reduceMotion){
-    // Skip the cinematic preloader for reduced-motion users.
-    gsap.set(preLogo, {y:0});
-    if(preCount) preCount.textContent = '100%';
-    if(preBar)   preBar.style.setProperty('--p', 1);
-    gsap.to('.preloader', {opacity:0, duration:.25, onComplete: bootApp});
   } else {
-    const preTl = gsap.timeline();
-    preTl
-      .to(preLogo, {y:0, duration:.8, ease:'power3.out', stagger:.04})
-      .to({}, {duration:1.4, ease:'power2.inOut',
-        onUpdate(){
-          const v = Math.round(this.progress()*100);
-          preCount.textContent = String(v).padStart(3,'0') + '%';
-          preBar.style.setProperty('--p', this.progress());
+    // The sequence ALWAYS plays the full duration so the brand intro lands.
+    // Reduce-motion users still see structure & status, but grain/sparks
+    // are CSS-disabled (see @media (prefers-reduced-motion) in style.css).
+    // ----- Timeline -----
+    const TOTAL      = 7000;     // ms — full sequence runtime
+    const SCAN_START = 200;
+    const SCAN_END   = 3300;
+    const HEX_AT     = SCAN_START + (SCAN_END - SCAN_START) * 0.70;
+    const TAGLINE_AT = 3500;
+    const SVC_WINDOWS = [
+      [ 800, 2800, 'Sourcing mill stock — beams · plates · alloys'],
+      [2800, 4600, 'Welding cell online — AWS D1.1 / EN 1090 EXC4'],
+      [4600, 6600, 'BIM lift plan synced — erection crew dispatched']
+    ];
+
+    // UTC clock (1Hz)
+    if (clockEl) {
+      const tickClock = () => {
+        const d = new Date();
+        const h = String(d.getUTCHours()).padStart(2, '0');
+        const m = String(d.getUTCMinutes()).padStart(2, '0');
+        const s = String(d.getUTCSeconds()).padStart(2, '0');
+        clockEl.textContent = h + ':' + m + ':' + s + ' UTC';
+      };
+      tickClock();
+      setInterval(tickClock, 1000);
+    }
+
+    // Sparks helpers
+    function sparkAtScan(){
+      const rev = parseFloat(logoZone.style.getPropertyValue('--rev')) || 0;
+      for (let i = 0; i < 2; i++) {
+        const s = document.createElement('span');
+        s.className = 'loader-spark';
+        const a = (Math.random() * Math.PI) - Math.PI/2;
+        const r = 30 + Math.random() * 90;
+        s.style.setProperty('--sx', Math.cos(a) * r + 'px');
+        s.style.setProperty('--sy', (Math.random() < .5 ? -1 : 1) * (20 + Math.random() * 70) + 'px');
+        s.style.left = rev + '%';
+        s.style.top  = (45 + Math.random() * 10) + '%';
+        s.style.animationDuration = (0.7 + Math.random() * 0.6) + 's';
+        sparksEl.appendChild(s);
+        setTimeout(() => s.remove(), 1500);
+      }
+    }
+
+    function bigBurst(xPct, yPct, n){
+      n = n || 36;
+      for (let i = 0; i < n; i++) {
+        const s = document.createElement('span');
+        s.className = 'loader-spark';
+        const a = Math.random() * Math.PI * 2;
+        const r = 80 + Math.random() * 260;
+        s.style.setProperty('--sx', Math.cos(a) * r + 'px');
+        s.style.setProperty('--sy', Math.sin(a) * r * 0.8 + 'px');
+        s.style.left = xPct + '%';
+        s.style.top  = yPct + '%';
+        s.style.animationDuration = (0.9 + Math.random() * 0.8) + 's';
+        sparksEl.appendChild(s);
+        setTimeout(() => s.remove(), 1900);
+      }
+    }
+
+    let raf = null, t0 = null, hexFired = false, taglineFired = false, sparkAcc = 0;
+
+    function setScan(t){
+      if (t < SCAN_START) {
+        logoZone.style.setProperty('--rev', '0%');
+        scanLine.classList.remove('is-on');
+        scanHalo.classList.remove('is-on');
+        return;
+      }
+      if (t > SCAN_END + 200) {
+        logoZone.style.setProperty('--rev', '100%');
+        scanLine.classList.add('is-off');
+        scanHalo.classList.add('is-off');
+        scanLine.classList.remove('is-on');
+        scanHalo.classList.remove('is-on');
+        return;
+      }
+      const local = Math.min(1, Math.max(0, (t - SCAN_START) / (SCAN_END - SCAN_START)));
+      const eased = local < .5 ? 2 * local * local : 1 - Math.pow(-2 * local + 2, 2) / 2;
+      logoZone.style.setProperty('--rev', (eased * 100).toFixed(2) + '%');
+      scanLine.classList.add('is-on');
+      scanHalo.classList.add('is-on');
+    }
+
+    function loaderFrame(now){
+      if (!t0) t0 = now;
+      const t = now - t0;
+      const p = Math.min(1, t / TOTAL);
+
+      setScan(t);
+
+      // Sparks while scanning (every ~70ms)
+      if (t > SCAN_START && t < SCAN_END) {
+        sparkAcc += 16.7;
+        if (sparkAcc > 70) { sparkAtScan(); sparkAcc = 0; }
+      }
+
+      // Hex flash + weld flash when crossing the hexagon
+      if (!hexFired && t >= HEX_AT) {
+        hexFired = true;
+        hexFlash.classList.remove('is-on'); void hexFlash.offsetWidth; hexFlash.classList.add('is-on');
+        weldFlash.classList.remove('is-on'); void weldFlash.offsetWidth; weldFlash.classList.add('is-on');
+        bigBurst(70, 50, 36);
+      }
+
+      // Tagline reveal
+      if (!taglineFired && t >= TAGLINE_AT) {
+        taglineFired = true;
+        tagline.classList.add('is-on');
+      }
+
+      // Master progress
+      const pp = (p * 100).toFixed(2);
+      trackFill.style.width = pp + '%';
+      trackMark.style.left  = pp + '%';
+      pctEl.textContent     = Math.round(p * 100) + '%';
+
+      // Service cards
+      svcs.forEach((el, i) => {
+        const w = SVC_WINDOWS[i];
+        const local = (t - w[0]) / (w[1] - w[0]);
+        const bar = el.querySelector('.loader-svc-bar');
+        if (t < w[0]) {
+          el.classList.remove('is-active', 'is-done');
+          bar.style.width = '0%';
+        } else if (t >= w[0] && t < w[1]) {
+          el.classList.add('is-active');
+          el.classList.remove('is-done');
+          bar.style.width = Math.max(0, Math.min(1, local)) * 100 + '%';
+          labelEl.textContent = w[2];
+        } else {
+          el.classList.remove('is-active');
+          el.classList.add('is-done');
+          bar.style.width = '100%';
         }
-      }, '-=.3')
-      .to('.preloader', {yPercent:-100, duration:1, ease:'power3.inOut',
-        onComplete: bootApp
-      }, '+=.15');
+      });
+      if (t < SVC_WINDOWS[0][0]) labelEl.textContent = 'Initializing mill link…';
+
+      if (p >= 1) {
+        labelEl.textContent = 'Ready.';
+        cancelAnimationFrame(raf);
+        // Snap stage to "done" state for the centered logo, then boot.
+        stage.classList.add('is-done');
+        setTimeout(bootApp, 700);
+        return;
+      }
+      raf = requestAnimationFrame(loaderFrame);
+    }
+
+    raf = requestAnimationFrame(loaderFrame);
   }
 
   /* -------- Nav ---------- */

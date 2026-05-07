@@ -14,12 +14,88 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Barlow+Condensed:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="page-legal">
+<!-- PRELOADER · Metalyol scan-line sequence -->
+<div class="loader-stage" id="loaderStage" aria-hidden="true">
+  <div class="loader-grain"></div>
+
+  <div class="loader-crosshair loader-ch-tl"></div>
+  <div class="loader-crosshair loader-ch-tr"></div>
+  <div class="loader-crosshair loader-ch-bl"></div>
+  <div class="loader-crosshair loader-ch-br"></div>
+
+  <div class="loader-hud-top">
+    <div class="loader-sys">
+      <span class="loader-led"></span>
+      <span>METALYOL // SYS.LOADER</span>
+      <span style="opacity:.6">v.04.26</span>
+    </div>
+    <div class="loader-coords">
+      <span>LAT 41.0826&deg; N</span>
+      <span>LON 28.7807&deg; E</span>
+      <span id="loaderClock">00:00:00 UTC</span>
+    </div>
+  </div>
+
+  <div class="loader-logo-zone" id="loaderLogoZone" style="--rev: 0%;">
+    <div class="loader-logo loader-logo-ghost" style="background-image:url('images/loader-logo.png')"></div>
+    <div class="loader-logo loader-logo-real" style="background-image:url('images/loader-logo.png')"></div>
+    <div class="loader-logo loader-logo-bright" style="background-image:url('images/loader-logo.png')"></div>
+    <div class="loader-scan-halo" id="loaderScanHalo"></div>
+    <div class="loader-scan-line" id="loaderScanLine"></div>
+    <div class="loader-hex-flash" id="loaderHexFlash"></div>
+    <div class="loader-weld-flash" id="loaderWeldFlash"></div>
+    <div class="loader-sparks" id="loaderSparks"></div>
+  </div>
+
+  <div class="loader-tagline" id="loaderTagline">
+    <span class="loader-dash"></span>STEEL &middot; TRADING &middot; FABRICATION &middot; CONSTRUCTION<span class="loader-dash"></span>
+  </div>
+
+  <div class="loader-services" id="loaderServices">
+    <div class="loader-svc" data-i="0">
+      <div class="loader-svc-bar"></div>
+      <div class="loader-svc-ticks"><i></i><i></i><i></i><i></i><i></i><span>&nbsp;01</span></div>
+      <div class="loader-svc-num">01<small>/03</small></div>
+      <div class="loader-svc-cat">Trading</div>
+      <div class="loader-svc-ttl">Steel Trading &amp; Mill Supply</div>
+      <div class="loader-svc-desc">Direct mill relationships, shipped to spec &mdash; beams, plates, hollow sections and high-grade alloys, delivered across MENA, Europe and Africa.</div>
+    </div>
+    <div class="loader-svc" data-i="1">
+      <div class="loader-svc-bar"></div>
+      <div class="loader-svc-ticks"><i></i><i></i><i></i><i></i><i></i><span>&nbsp;02</span></div>
+      <div class="loader-svc-num">02<small>/03</small></div>
+      <div class="loader-svc-cat">Fabrication</div>
+      <div class="loader-svc-ttl">Industrial Steel Fabrication</div>
+      <div class="loader-svc-desc">High-tonnage structural fabrication &mdash; engineered, welded and finished to AWS&nbsp;D1.1, EN&nbsp;1090&nbsp;EXC4 and AISC standards.</div>
+    </div>
+    <div class="loader-svc" data-i="2">
+      <div class="loader-svc-bar"></div>
+      <div class="loader-svc-ticks"><i></i><i></i><i></i><i></i><i></i><span>&nbsp;03</span></div>
+      <div class="loader-svc-num">03<small>/03</small></div>
+      <div class="loader-svc-cat">Construction</div>
+      <div class="loader-svc-ttl">Turnkey Construction &amp; Erection</div>
+      <div class="loader-svc-desc">Full-scope erection crews, lift planning and BIM-coordinated installation &mdash; handing over verified, surveyed structures ready for cladding.</div>
+    </div>
+  </div>
+
+  <div class="loader-hud-bot">
+    <div class="loader-load-label">
+      <span class="loader-led"></span>
+      <span id="loaderLabel">Initializing mill link&hellip;</span>
+    </div>
+    <div class="loader-track">
+      <div class="loader-track-fill" id="loaderTrackFill"></div>
+      <div class="loader-track-mark" id="loaderTrackMark"></div>
+    </div>
+    <div class="loader-pct" id="loaderPct">0%</div>
+  </div>
+</div>
 
 <header class="nav">
   <a href="index.html#hero" class="nav__logo"><img class="nav__logo-img" src="images/logo.png" alt="Metalyol"></a>
