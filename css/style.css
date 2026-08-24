@@ -86,6 +86,28 @@ html {
   outline-offset: 4px;
 }
 
+/* Keyboard skip-link — hidden until focused */
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 10000;
+  padding: 12px 18px;
+  background: var(--bg-2);
+  color: var(--txt);
+  border: 1px solid var(--ember);
+  border-radius: var(--radius-sm);
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
 body {
   background: var(--bg-0);
   color: var(--txt);
@@ -95,9 +117,23 @@ body {
   overflow-x: hidden;
 }
 
+/* Film-grain overlay — breaks the flatness of large dark surfaces.
+   Sits under the custom cursor (9998) and above all content. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  pointer-events: none;
+  opacity: .04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
 body.lock {
   overflow: hidden;
-  height: 100vh
+  height: 100vh;
+  height: 100dvh;
 }
 
 img,
@@ -126,39 +162,39 @@ button {
 }
 
 /* ---------- Magnetic cursor (desktop only) ---------- */
+/* Laid out once at ring size; every state is a scale so nothing reflows.
+   JS drives `translate`, CSS owns `transform` — the two never collide. */
 .cursor {
   position: fixed;
   top: 0;
   left: 0;
-  width: 10px;
-  height: 10px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--ember);
   pointer-events: none;
   z-index: 9998;
-  transform: translate3d(-50%, -50%, 0);
+  transform: translate(-50%, -50%) scale(var(--s, .227));
   transition:
-    width .3s cubic-bezier(.2, .8, .2, 1),
-    height .3s cubic-bezier(.2, .8, .2, 1),
+    transform .25s cubic-bezier(.2, .8, .2, 1),
     background .3s ease,
     border-color .3s ease,
     box-shadow .3s ease;
   border: 2px solid transparent;
   box-sizing: border-box;
-  will-change: transform, width, height;
+  will-change: translate, transform;
 }
 
 .cursor.is-hover {
-  width: 44px;
-  height: 44px;
+  --s: 1;
   background: transparent;
   border-color: var(--ember);
   box-shadow: 0 0 18px rgba(175, 15, 15, .55);
 }
 
-.cursor.is-down {
-  transform: translate3d(-50%, -50%, 0) scale(.8);
-}
+/* Press compresses fast, releases at normal speed — deliberate asymmetry */
+.cursor.is-down { --s: .18; transition-duration: .1s, .3s, .3s, .3s; }
+.cursor.is-hover.is-down { --s: .85; }
 
 @media (max-width: 900px), (hover: none), (pointer: coarse) {
   .cursor { display: none; }
@@ -805,7 +841,7 @@ button {
 }
 
 .loader-stage.is-done .loader-logo-zone {
-  transition: top 1s cubic-bezier(.7, 0, .2, 1);
+  transition: top .45s cubic-bezier(.2, .8, .2, 1);
   top: 50%;
 }
 
@@ -813,6 +849,9 @@ button {
   transform: translateY(-100%);
   transition: transform .6s cubic-bezier(.65, 0, .35, 1);
 }
+
+/* Repeat views in the same session skip the intro entirely */
+html.loader-seen .loader-stage { display: none; }
 
 /* ---- Short screens: shrink the cards so they never reach the logo --- */
 @media (max-height: 760px) {
@@ -992,6 +1031,7 @@ button {
 .hero {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   padding: clamp(112px, 14vw, 140px) 0 64px;
@@ -1008,16 +1048,18 @@ button {
     linear-gradient(180deg, #0a0b0d 0%, #0f1115 100%);
 }
 
+/* The grid reads as structure at the edges and disappears under the text.
+   (It used to peak at dead centre — exactly where the headline sits.) */
 .hero__grid {
   position: absolute;
   inset: 0;
   z-index: 1;
-  opacity: .4;
+  opacity: .22;
   background-image:
     linear-gradient(rgba(255, 255, 255, .04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, .04) 1px, transparent 1px);
   background-size: 80px 80px;
-  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  mask-image: radial-gradient(ellipse 70% 60% at 30% 50%, transparent 0%, black 75%);
 }
 
 .hero__scene {
@@ -1061,7 +1103,20 @@ button {
 .hero__canvas {
   position: absolute;
   inset: 0;
-  z-index: 2
+  z-index: 2;
+  opacity: .7;
+}
+
+/* Sits above every decorative layer, below the copy. Kept deliberately light —
+   the grid mask and the thinner particle field do most of the calming, and a
+   heavier scrim would swallow the ember glow rising from the bottom-left. */
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 52% 58% at 24% 46%, rgba(10, 11, 13, .55) 0%, rgba(10, 11, 13, .28) 48%, transparent 74%);
 }
 
 .hero .container {
@@ -1109,30 +1164,34 @@ button {
   margin: 0 0 36px;
 }
 
-/* === Hero 3-services row === */
+/* === Hero discipline strip ===
+   Deliberately not a card trio — it reads as a spec row under the headline so
+   it supports the message instead of competing with it for attention. */
 .hero__services {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  margin: 0 0 32px;
-  max-width: 920px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin: 0 0 34px;
+  max-width: 760px;
 }
 
 .hero__service {
-  background: rgba(15, 17, 21, .7);
-  backdrop-filter: blur(8px);
-  padding: 24px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  padding: 18px 22px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 10px;
   position: relative;
   overflow: hidden;
   transition: background .3s ease, transform .3s ease;
 }
+
+.hero__service + .hero__service {
+  border-left: 1px solid var(--line);
+}
+
+.hero__service:first-child { padding-left: 0; }
 
 .hero__service::after {
   content: "";
@@ -1149,8 +1208,7 @@ button {
 
 .hero__service:hover,
 .hero__service.is-active {
-  background: rgba(28, 32, 39, .85);
-  transform: translateY(-4px)
+  background: rgba(255, 255, 255, .025);
 }
 
 .hero__service:hover::after,
@@ -1158,12 +1216,12 @@ button {
   transform: scaleX(1)
 }
 
-/* Auto-cycle active state — ember halo on the icon */
+/* Auto-cycle active state — a low ember wash rising from the underline */
 .hero__service.is-active::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 24px 80px, rgba(175, 15, 15, .22) 0%, transparent 55%);
+  background: linear-gradient(0deg, rgba(175, 15, 15, .16) 0%, transparent 70%);
   pointer-events: none;
   animation: heroServicePulse 3.5s ease-in-out infinite;
 }
@@ -1173,10 +1231,9 @@ button {
   50%      { opacity: 1; }
 }
 
-.hero__service.is-active i {
-  background: var(--grad-ember);
-  color: #fff;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 8px 22px -4px rgba(175, 15, 15, .55);
+.hero__service.is-active i,
+.hero__service.is-active .hero__service-num {
+  color: var(--ember-2);
 }
 
 .hero__service-num {
@@ -1184,32 +1241,31 @@ button {
   font-size: 11px;
   color: var(--txt-dim);
   letter-spacing: .2em;
+  transition: color .3s ease;
 }
 
 .hero__service i {
-  font-size: 22px;
-  color: var(--ember);
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  background: var(--ember-soft);
-  border-radius: 8px;
+  font-size: 13px;
+  color: var(--txt-dim);
+  justify-self: start;
+  transition: color .3s ease;
 }
 
 .hero__service h3 {
+  grid-column: 1 / -1;
   font-family: var(--ff-display);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 600;
-  margin: 0;
+  margin: 2px 0 0;
   letter-spacing: -.01em;
 }
 
 .hero__service p {
-  font-size: 13px;
+  grid-column: 1 / -1;
+  font-size: 12.5px;
   color: var(--txt-mute);
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
 .hero__cta {
@@ -1507,6 +1563,7 @@ button {
   position: sticky;
   top: var(--nav-h, 92px);
   height: calc(100vh - var(--nav-h, 92px));
+  height: calc(100svh - var(--nav-h, 92px));
   display: grid;
   place-items: center;
   padding: 32px var(--gutter);
@@ -1600,7 +1657,8 @@ button {
   text-transform: uppercase;
   color: #fff;
   text-shadow: 0 1px 4px rgba(0, 0, 0, .55);
-  transition: background .25s ease, border-color .25s ease, gap .25s ease;
+  transition: background .25s ease, border-color .25s ease, gap .25s ease,
+              transform .25s cubic-bezier(.2, .8, .2, 1);
 }
 
 .bp__view i { transition: transform .25s ease; }
@@ -2286,6 +2344,42 @@ button {
   gap: 20px
 }
 
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.field label {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--txt-mute);
+}
+
+.field__req {
+  color: var(--ember-2);
+}
+
+.field__error {
+  font-family: var(--ff-mono);
+  font-size: 11.5px;
+  letter-spacing: .04em;
+  color: var(--ember-2);
+}
+
+.field__error:empty {
+  display: none;
+}
+
+.field--error input,
+.field--error textarea {
+  border-color: var(--ember);
+  background: rgba(175, 15, 15, .06);
+}
+
 .field input,
 .field textarea,
 .field select {
@@ -2467,8 +2561,9 @@ button {
 
 /* ---- Tablet wide: collapse nav + simplify multi-col grids ----------------- */
 @media (max-width: 1024px) {
+  /* Visibility-based so open AND close both animate and stay interruptible —
+     keyframes would restart from zero on every rapid toggle. */
   .nav__menu {
-    display: none;
     position: absolute;
     top: 100%;
     left: 0;
@@ -2480,16 +2575,26 @@ button {
     backdrop-filter: blur(20px);
     padding: 16px var(--gutter) 24px;
     border-bottom: 1px solid var(--line);
-    transform-origin: top;
-    animation: navMenuIn .25s ease both;
+    opacity: 0;
+    transform: translateY(-8px);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity .15s cubic-bezier(.2, .8, .2, 1),
+      transform .15s cubic-bezier(.2, .8, .2, 1),
+      visibility 0s linear .15s;
   }
 
-  @keyframes navMenuIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
+  .nav.open .nav__menu {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      opacity .2s cubic-bezier(.2, .8, .2, 1),
+      transform .2s cubic-bezier(.2, .8, .2, 1),
+      visibility 0s;
   }
-
-  .nav.open .nav__menu { display: flex; }
 
   .nav__menu a {
     padding: 14px 0;
@@ -2544,9 +2649,14 @@ button {
 @media (max-width: 900px) {
   .services__grid--three { grid-template-columns: 1fr 1fr; }
 
-  /* Hero promotes the three-card row to a 2-col grid; the third card spans full width */
+  /* Strip drops to two columns; the third spans and picks up a divider on top */
   .hero__services { grid-template-columns: 1fr 1fr; }
-  .hero__service:last-child { grid-column: 1 / -1; }
+  .hero__service:last-child {
+    grid-column: 1 / -1;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding-left: 0;
+  }
 
   .footer__monogram { font-size: clamp(56px, 18vw, 140px); }
 
@@ -2568,10 +2678,22 @@ button {
   .hero { padding: 96px 0 48px; min-height: 100vh; }
   .hero__headline { font-size: clamp(36px, 11vw, 56px); margin: 0 0 18px; }
   .hero__sub { font-size: 15px; line-height: 1.55; margin: 0 0 28px; }
-  .hero__services { grid-template-columns: 1fr; margin: 0 0 24px; }
-  .hero__service { padding: 20px 18px; gap: 10px; }
-  .hero__service h3 { font-size: 18px; }
-  .hero__service p { font-size: 12.5px; }
+  /* One row per discipline: number · icon · name, spec underneath.
+     Keeps the CTA above the fold on a 812px-tall phone. */
+  .hero__services { grid-template-columns: 1fr; margin: 0 0 26px; }
+  .hero__service {
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    padding: 12px 0;
+    gap: 2px 9px;
+  }
+  .hero__service + .hero__service {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .hero__service:last-child { border-left: 0; }
+  .hero__service h3 { grid-column: 3; margin: 0; font-size: 15px; }
+  .hero__service p { font-size: 12px; }
   .hero__cta { gap: 10px; }
   .hero__cta .btn { flex: 1; justify-content: center; padding: 14px 18px; }
   .hero__scroll { display: none; }
@@ -2739,6 +2861,7 @@ button {
 .proj-hero {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: flex-end;
   padding: 0 0 120px;
@@ -3514,7 +3637,7 @@ button {
 /* ==========================================================================
    404 — page not found
    ========================================================================== */
-.page-404 { background: var(--bg-0); min-height: 100vh; }
+.page-404 { background: var(--bg-0); min-height: 100vh; min-height: 100dvh; }
 
 .not-found {
   min-height: calc(100vh - 92px);
@@ -3964,6 +4087,7 @@ button {
 .page-legal {
   background: var(--bg-0);
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .legal {
@@ -4700,4 +4824,23 @@ body:has(.cookie-bar:not([hidden])) .wa-float {
 
 @media (max-width: 680px) {
   body:has(.cookie-bar:not([hidden])) .wa-float { bottom: 130px; }
+}
+
+/* ==========================================================================
+   PRESS FEEDBACK
+   Pressables compress quickly and release at their normal speed. Touch users
+   get their only motion feedback here — :hover never fires for them.
+   ========================================================================== */
+.btn:active,
+.bp__view:active,
+.nav__burger:active,
+.wa-float:active {
+  transform: scale(.97);
+  transition-duration: .1s;
+}
+
+.hero__service:active,
+.op-card:active {
+  transform: scale(.98);
+  transition-duration: .1s;
 }

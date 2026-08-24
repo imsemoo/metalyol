@@ -33,13 +33,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const clockEl    = document.getElementById('loaderClock');
   const svcs       = document.querySelectorAll('.loader-svc');
 
-  document.body.classList.add('lock');
+  // The brand intro is a first-impression moment, not a toll booth. It plays
+  // once per session; every later navigation skips it. An inline <head> script
+  // sets html.loader-seen before first paint so the stage never flashes.
+  let loaderSeen = false;
+  try { loaderSeen = sessionStorage.getItem('metalyol-loader') === '1'; } catch(_) {}
+
+  if (!loaderSeen && stage) document.body.classList.add('lock');
 
   let bootDone = false;
   function bootApp(){
     if (bootDone) return;
     bootDone = true;
-    if (stage) {
+    if (stage && !loaderSeen) {
       stage.classList.add('is-finishing');
       setTimeout(() => { stage.style.display = 'none'; }, 600);
     }
@@ -50,10 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Hard safety: 5s timeout in case rAF stalls (tab backgrounded, etc.)
   setTimeout(bootApp, 5000);
 
-  if (!stage) {
-    // No loader on this page — boot immediately.
+  if (!stage || loaderSeen) {
+    // No loader on this page, or already seen this session — boot immediately.
     bootApp();
   } else {
+    try { sessionStorage.setItem('metalyol-loader', '1'); } catch(_) {}
     // The sequence ALWAYS plays the full duration so the brand intro lands.
     // Reduce-motion users still see structure & status, but grain/sparks
     // are CSS-disabled (see @media (prefers-reduced-motion) in style.css).
@@ -200,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelAnimationFrame(raf);
         // Snap stage to "done" state for the centered logo, then boot.
         stage.classList.add('is-done');
-        setTimeout(bootApp, 200);
+        setTimeout(bootApp, 450);
         return;
       }
       raf = requestAnimationFrame(loaderFrame);
@@ -244,6 +251,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('a[href^="#"]').forEach(a=>{
     a.addEventListener('click', e=>{
+      // Skip-link must keep native jump behaviour so keyboard focus moves too
+      if(a.classList.contains('skip-link')) return;
       const id = a.getAttribute('href');
       if(id.length<2) return;
       const t = document.querySelector(id);
@@ -412,19 +421,27 @@ document.addEventListener('DOMContentLoaded', () => {
     cursor.setAttribute('aria-hidden', 'true');
     document.body.appendChild(cursor);
 
-    let mx = 0, my = 0, cx = 0, cy = 0, running = false;
+    // Position rides the standalone `translate` property so the CSS classes
+    // stay free to own `transform` (scale). The loop parks itself once the
+    // lerp has settled and wakes on the next move.
+    let mx = 0, my = 0, cx = 0, cy = 0, raf = null;
     const lerp = (a, b, n) => a + (b - a) * n;
 
     document.addEventListener('mousemove', e => {
       mx = e.clientX; my = e.clientY;
-      if(!running){ running = true; loop(); }
+      if(!raf) raf = requestAnimationFrame(loop);
     }, {passive:true});
 
     function loop(){
       cx = lerp(cx, mx, .22);
       cy = lerp(cy, my, .22);
-      cursor.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate3d(-50%, -50%, 0)`;
-      requestAnimationFrame(loop);
+      cursor.style.translate = cx + 'px ' + cy + 'px';
+      if(Math.abs(mx - cx) < .1 && Math.abs(my - cy) < .1){
+        cursor.style.translate = mx + 'px ' + my + 'px';
+        raf = null;
+        return;
+      }
+      raf = requestAnimationFrame(loop);
     }
 
     const hoverSel = 'a, .btn, .hero__service, .service, .op-card, button, [role="button"]';
@@ -442,6 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* -------- Particles canvas ---------- */
   function initParticles(){
+    if(reduceMotion) return;
     const canvas = document.querySelector('.hero__canvas');
     if(!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -452,15 +470,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     resize(); window.addEventListener('resize', resize);
 
-    for(let i=0;i<60;i++){
+    // Kept sparse on purpose — the hero already carries a grid and a scaffold;
+    // more embers than this reads as noise rather than atmosphere.
+    for(let i=0;i<28;i++){
       particles.push({
         x:Math.random()*w, y:Math.random()*h,
         vx:(Math.random()-.5)*.2, vy:-Math.random()*.3 - .05,
         r:Math.random()*1.4 + .3,
-        a:Math.random()*.6 + .2,
+        a:Math.random()*.45 + .15,
         hue:Math.random() > .7 ? '255,120,40' : '180,190,210'
       });
     }
+    let raf = null;
     function tick(){
       ctx.clearRect(0,0,w,h);
       particles.forEach(p=>{
@@ -471,9 +492,17 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = `rgba(${p.hue}, ${p.a})`;
         ctx.fill();
       });
-      requestAnimationFrame(tick);
+      raf = requestAnimationFrame(tick);
     }
-    tick();
+
+    // Draw only while the hero is on screen — saves cycles
+    const io = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ if(!raf) raf = requestAnimationFrame(tick); }
+        else if(raf){ cancelAnimationFrame(raf); raf = null; }
+      });
+    }, {threshold: 0});
+    io.observe(canvas);
   }
 
   /* -------- Reveals ----------
@@ -616,15 +645,49 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.bp-stage').forEach(initBlueprintStage);
   }
 
-  /* -------- Form ---------- */
+  /* -------- Form ----------
+     Client-side validation with inline errors before the success state.
+     Rules: name ≥ 2 chars, email must parse. Errors clear as the user
+     types; first invalid field receives focus on a failed submit. */
   const form = document.querySelector('.form');
-  form?.addEventListener('submit', e=>{
-    e.preventDefault();
-    const btn = form.querySelector('.form__submit');
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-check"></i> Message sent';
-    btn.style.background = 'var(--ember-2)';
-    setTimeout(()=>{ btn.innerHTML = orig; btn.style.background=''; form.reset(); }, 2400);
-  });
+  if (form) {
+    const checks = [
+      { input: form.querySelector('input[name="name"]'),
+        valid: v => v.trim().length >= 2,
+        msg: 'Please enter your name.' },
+      { input: form.querySelector('input[name="email"]'),
+        valid: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()),
+        msg: 'Please enter a valid email address.' }
+    ].filter(c => c.input);
+
+    function setError(c, msg){
+      const field = c.input.closest('.field');
+      field.classList.toggle('field--error', !!msg);
+      const out = field.querySelector('.field__error');
+      if (out) out.textContent = msg || '';
+      c.input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+    }
+
+    checks.forEach(c => c.input.addEventListener('input', () => {
+      if (c.valid(c.input.value)) setError(c, '');
+    }));
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      let firstBad = null;
+      checks.forEach(c => {
+        const ok = c.valid(c.input.value);
+        setError(c, ok ? '' : c.msg);
+        if (!ok && !firstBad) firstBad = c.input;
+      });
+      if (firstBad) { firstBad.focus(); return; }
+
+      const btn = form.querySelector('.form__submit');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Message sent';
+      btn.style.background = 'var(--ember-2)';
+      setTimeout(()=>{ btn.innerHTML = orig; btn.style.background=''; form.reset(); }, 2400);
+    });
+  }
 
 });

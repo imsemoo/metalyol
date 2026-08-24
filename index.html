@@ -36,8 +36,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Barlow+Condensed:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-<link rel="stylesheet" href="css/style.css">
+<!-- Skip the brand intro after the first view of a session (see plans/001) -->
+<script>try{if(sessionStorage.getItem('metalyol-loader')==='1')document.documentElement.classList.add('loader-seen')}catch(_){}</script>
+<link rel="stylesheet" href="css/style.css?v=4">
 
 <!-- Schema.org structured data — surfaces the company in rich-result panels -->
 <script type="application/ld+json">
@@ -68,6 +69,8 @@
 </script>
 </head>
 <body>
+
+<a class="skip-link" href="#hero">Skip to content</a>
 
 <!-- PRELOADER -->
 <!-- PRELOADER · Metalyol scan-line sequence -->
@@ -218,6 +221,10 @@
 
   <canvas class="hero__canvas"></canvas>
 
+  <!-- Calms the scaffold, grid and particles behind the text column so the
+       headline sits on quiet ground instead of competing with the scenery -->
+  <div class="hero__scrim" aria-hidden="true"></div>
+
   <div class="container">
     <span class="eyebrow">Metalyol Construction & Trading · Est. 2008</span>
     <h1 class="hero__headline">
@@ -225,29 +232,29 @@
       <span class="line"><span>One <em>steel partner.</em></span></span>
     </h1>
     <p class="hero__sub">
-      We supply, fabricate and erect the steel that shapes skylines —
-      end-to-end, under one accountable team.
+      Mill supply, fabrication and erection under one accountable team —
+      65,000 tonnes delivered across MENA, Europe and Africa.
     </p>
 
-    <!-- THE 3 SERVICES — front and center -->
+    <!-- The three disciplines, as a spec strip rather than a card trio -->
     <div class="hero__services">
       <a href="#services" class="hero__service">
         <span class="hero__service-num">01</span>
         <i class="fa-solid fa-truck-fast"></i>
         <h3>Steel Trading</h3>
-        <p>Direct mill supply.<br>Beams, plates, alloys.</p>
+        <p>Direct mill supply</p>
       </a>
       <a href="#services" class="hero__service">
         <span class="hero__service-num">02</span>
         <i class="fa-solid fa-industry"></i>
         <h3>Fabrication</h3>
-        <p>Precision-welded<br>structural steel.</p>
+        <p>Precision-welded structures</p>
       </a>
       <a href="#services" class="hero__service">
         <span class="hero__service-num">03</span>
         <i class="fa-solid fa-helmet-safety"></i>
         <h3>Construction</h3>
-        <p>Turnkey on-site<br>erection &amp; delivery.</p>
+        <p>Turnkey on-site erection</p>
       </a>
     </div>
 
@@ -291,7 +298,7 @@
         <div class="service__icon"><i class="fa-solid fa-truck-fast"></i></div>
         <h3 class="service__title">Steel Trading &amp; Mill Supply</h3>
         <p class="service__desc">Direct mill relationships, shipped to spec — beams, plates, hollow sections and high-grade alloys, delivered across MENA, Europe and Africa.</p>
-        <span class="service__more">Learn more <i class="fa-solid fa-arrow-right"></i></span>
+        <a class="service__more" href="#contact">Request mill stock <i class="fa-solid fa-arrow-right"></i></a>
       </article>
 
       <article class="service">
@@ -299,7 +306,7 @@
         <div class="service__icon"><i class="fa-solid fa-industry"></i></div>
         <h3 class="service__title">Industrial Steel Fabrication</h3>
         <p class="service__desc">High-tonnage structural fabrication — engineered, welded and finished to AWS&nbsp;D1.1, EN&nbsp;1090 EXC4 and AISC standards.</p>
-        <span class="service__more">Learn more <i class="fa-solid fa-arrow-right"></i></span>
+        <a class="service__more" href="#contact">Submit drawings <i class="fa-solid fa-arrow-right"></i></a>
       </article>
 
       <article class="service">
@@ -307,7 +314,7 @@
         <div class="service__icon"><i class="fa-solid fa-helmet-safety"></i></div>
         <h3 class="service__title">Turnkey Construction &amp; Erection</h3>
         <p class="service__desc">Full-scope erection crews, lift planning and BIM-coordinated installation — handing over verified, surveyed structures ready for cladding.</p>
-        <span class="service__more">Learn more <i class="fa-solid fa-arrow-right"></i></span>
+        <a class="service__more" href="#contact">Plan an erection scope <i class="fa-solid fa-arrow-right"></i></a>
       </article>
 
     </div>
@@ -620,22 +627,40 @@
 
       <form class="form" novalidate>
         <div class="field-row">
-          <div class="field"><input type="text" placeholder="Full name" required></div>
-          <div class="field"><input type="text" placeholder="Company"></div>
+          <div class="field">
+            <label for="f-name">Full name <span class="field__req" aria-hidden="true">*</span></label>
+            <input id="f-name" name="name" type="text" autocomplete="name" required>
+            <span class="field__error" aria-live="polite"></span>
+          </div>
+          <div class="field">
+            <label for="f-company">Company</label>
+            <input id="f-company" name="company" type="text" autocomplete="organization">
+          </div>
         </div>
         <div class="field-row">
-          <div class="field"><input type="email" placeholder="Email" required></div>
-          <div class="field"><input type="tel" placeholder="Phone"></div>
+          <div class="field">
+            <label for="f-email">Email <span class="field__req" aria-hidden="true">*</span></label>
+            <input id="f-email" name="email" type="email" autocomplete="email" required>
+            <span class="field__error" aria-live="polite"></span>
+          </div>
+          <div class="field">
+            <label for="f-phone">Phone</label>
+            <input id="f-phone" name="phone" type="tel" autocomplete="tel">
+          </div>
         </div>
         <div class="field">
-          <select>
-            <option>Project type</option>
+          <label for="f-type">Project type</label>
+          <select id="f-type" name="type">
+            <option value="">Select a scope</option>
             <option>Steel trading</option>
             <option>Fabrication</option>
             <option>Turnkey construction</option>
           </select>
         </div>
-        <div class="field"><textarea placeholder="Tell us about your project."></textarea></div>
+        <div class="field">
+          <label for="f-msg">Project details</label>
+          <textarea id="f-msg" name="message" placeholder="Site, tonnage estimate, programme dates — anything you have."></textarea>
+        </div>
         <button type="submit" class="btn btn-primary form__submit">
           Send message <i class="fa-solid fa-arrow-right"></i>
         </button>
@@ -652,9 +677,9 @@
         <a href="#hero" class="nav__logo"><img class="nav__logo-img" src="images/logo-footer.png" alt="Metalyol Construction &amp; Trading Ltd." loading="lazy" decoding="async"></a>
         <p>Engineered steel. Built to last. Three disciplines, one accountable partner — since 2008.</p>
         <div class="footer__social">
-          <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+          <a href="https://linkedin.com/company/metalyol" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+          <a href="https://www.instagram.com/metalyol/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="https://www.youtube.com/@metalyol" target="_blank" rel="noopener" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
         </div>
       </div>
       <div class="footer__col">
@@ -722,7 +747,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script src="js/main.js"></script>
+<script src="js/main.js?v=4"></script>
 </body>
 </html>
