@@ -1179,9 +1179,7 @@ html.loader-seen .loader-stage { display: none; }
 .hero__service {
   padding: 18px 22px;
   display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 4px 10px;
+  gap: 4px;
   position: relative;
   overflow: hidden;
   transition: background .3s ease, transform .3s ease;
@@ -1231,7 +1229,6 @@ html.loader-seen .loader-stage { display: none; }
   50%      { opacity: 1; }
 }
 
-.hero__service.is-active i,
 .hero__service.is-active .hero__service-num {
   color: var(--ember-2);
 }
@@ -1244,15 +1241,7 @@ html.loader-seen .loader-stage { display: none; }
   transition: color .3s ease;
 }
 
-.hero__service i {
-  font-size: 13px;
-  color: var(--txt-dim);
-  justify-self: start;
-  transition: color .3s ease;
-}
-
 .hero__service h3 {
-  grid-column: 1 / -1;
   font-family: var(--ff-display);
   font-size: 17px;
   font-weight: 600;
@@ -1261,7 +1250,6 @@ html.loader-seen .loader-stage { display: none; }
 }
 
 .hero__service p {
-  grid-column: 1 / -1;
   font-size: 12.5px;
   color: var(--txt-mute);
   margin: 0;
@@ -1275,10 +1263,12 @@ html.loader-seen .loader-stage { display: none; }
   align-items: center
 }
 
+/* Bottom-left, not bottom-right — the WhatsApp float owns that corner and the
+   two used to sit on top of each other. Also matches the left-aligned copy. */
 .hero__scroll {
   position: absolute;
   bottom: 32px;
-  right: var(--gutter);
+  left: var(--gutter);
   z-index: 3;
   display: flex;
   flex-direction: column;
@@ -2678,22 +2668,22 @@ html.loader-seen .loader-stage { display: none; }
   .hero { padding: 96px 0 48px; min-height: 100vh; }
   .hero__headline { font-size: clamp(36px, 11vw, 56px); margin: 0 0 18px; }
   .hero__sub { font-size: 15px; line-height: 1.55; margin: 0 0 28px; }
-  /* One row per discipline: number · icon · name, spec underneath.
-     Keeps the CTA above the fold on a 812px-tall phone. */
+  /* One row per discipline: number and name share a line, spec underneath.
+     Keeps the CTA above the fold on an 812px-tall phone. */
   .hero__services { grid-template-columns: 1fr; margin: 0 0 26px; }
   .hero__service {
-    grid-template-columns: auto auto 1fr;
+    grid-template-columns: auto 1fr;
     align-items: center;
     padding: 12px 0;
-    gap: 2px 9px;
+    gap: 2px 10px;
   }
   .hero__service + .hero__service {
     border-left: 0;
     border-top: 1px solid var(--line);
   }
   .hero__service:last-child { border-left: 0; }
-  .hero__service h3 { grid-column: 3; margin: 0; font-size: 15px; }
-  .hero__service p { font-size: 12px; }
+  .hero__service h3 { grid-column: 2; margin: 0; font-size: 15px; }
+  .hero__service p { grid-column: 1 / -1; font-size: 12px; }
   .hero__cta { gap: 10px; }
   .hero__cta .btn { flex: 1; justify-content: center; padding: 14px 18px; }
   .hero__scroll { display: none; }
@@ -4810,10 +4800,12 @@ html.loader-seen .loader-stage { display: none; }
 }
 
 @media (max-width: 680px) {
-  .cookie-bar { left: 12px; right: 12px; bottom: 12px; padding: 14px 16px; }
-  .cookie-bar__inner { flex-direction: column; gap: 12px; align-items: stretch; }
-  .cookie-bar__copy { font-size: 13px; }
-  .cookie-bar__btn { width: 100%; justify-content: center; }
+  /* Stays a single row on phones — stacking it made the bar tall enough to
+     bury the hero's CTAs until the visitor dismissed it. */
+  .cookie-bar { left: 12px; right: 12px; bottom: 12px; padding: 12px 14px; }
+  .cookie-bar__inner { gap: 12px; align-items: center; }
+  .cookie-bar__copy { font-size: 12.5px; line-height: 1.45; }
+  .cookie-bar__btn { padding: 10px 14px; white-space: nowrap; flex-shrink: 0; }
 }
 
 /* When the WhatsApp float is visible, lift the cookie bar above it */
@@ -4823,7 +4815,9 @@ body:has(.cookie-bar:not([hidden])) .wa-float {
 }
 
 @media (max-width: 680px) {
-  body:has(.cookie-bar:not([hidden])) .wa-float { bottom: 130px; }
+  /* At 375px there is no room for both; the float would land on the hero's
+     primary CTA. The bar is transient — the float returns once it is gone. */
+  body:has(.cookie-bar:not([hidden])) .wa-float { display: none; }
 }
 
 /* ==========================================================================
